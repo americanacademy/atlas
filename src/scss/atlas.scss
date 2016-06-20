@@ -1,0 +1,43 @@
+#atlas {
+    text-align: center;
+    width: 100%;
+    margin: 0 auto;
+}
+#options {
+    width: 30%;
+    float: left;
+    position: fixed;
+}
+table {
+    width: 70%;
+    font-family: sans-serif;
+    margin: 0px auto;
+    float: right;
+}
+td {
+    padding: 10px;
+    border: solid 1px #eee;
+}
+button, input {
+    width: 100%;
+    border: 1px solid black;
+    padding-left: 1%;
+    padding-right: 1%;
+    height: 50;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.5em;
+}
+body {
+    font: normal 14px/100% "Andale Mono", AndaleMono, monospace;
+}
+a {
+    color: #fff;
+}
+p {
+    margin-top: 10px;
+}
+.chosen-container-multi {
+    width: 200px;
+    height: 30px;
+}
