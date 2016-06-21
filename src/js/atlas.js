@@ -1,4 +1,5 @@
 // CONSTANTS
+// *****************************************************************************
 const table = $('#orgs');
 const tableCols = [
     "organizations",
@@ -15,30 +16,41 @@ $(".filter").keypress(function(e) {
 });
 
 
-// INIT *******************************************************************
+// INIT
+// *****************************************************************************
 getData();
-addHeader();
-$(".chosen-select").chosen({
-    max_selected_options: 5,
-    no_results_text: "Oops, nothing found!",
-    width: "100%",
-});
-// INIT *******************************************************************
 
+
+// LOAD TABLE
+// *****************************************************************************
 function tableWithQuery(query) {
     // Filter data on query, show first 10.
-    $("tbody tr").remove()
+    $("tbody tr").remove();
+    addHeader();
     var toShow = [];
+    // Load up the filters.
+    var filters = [];
+    for (var index in tableCols) {
+        var selectedValues = $('select#' + tableCols[index]).val();
+        filters[index] = selectedValues;
+    }
+    // Now actually filter the rows.
     for (var key in _data) {
-        if (matchQuery(_data[key], query)) {
-            toShow.push(_data[key]);
+        var row = _data[key];
+        // Check filters
+        var passed = true;
+        for (var i in tableCols) {
+            console.log(row[tableCols[i]], filters[i]);
+            if (filters[i].length > 0 && $.inArray(row[tableCols[i]], filters[i]) === -1) {
+                passed = false;
+                break;
+            }
+        }
+        if (passed) {
+            toShow.push(row);
         }
     }
     loadList(toShow);
-}
-
-function matchQuery(org, query) {
-    return org["organizations"].toLowerCase().indexOf(query.toLowerCase()) > -1;
 }
 
 function loadList(l) {
@@ -65,7 +77,7 @@ function addHeader() {
         string += "<th>" + tableCols[i] + "</th>";
     }
     string += "</tr>";
-    table.find('tbody:last').append(string)
+    table.find('tbody:first').append(string);
 }
 
 // Create a server request.
@@ -76,28 +88,42 @@ function getData() {
         url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"&limitToFirst=20",
         success: function(data) {
             _data = data;
-            tableWithQuery("");
             loadFilters();
+            tableWithQuery("");
         }
     });
 }
 
-// LOAD LOCATION LIST
+// LOAD TABLE
+// *****************************************************************************
 function loadFilters() {
-    for (var i = 0; i < tableCols.length; i++) {
+    for (var i in tableCols) {
         createFilterFor(tableCols[i]);
     }
+    $(".chosen-select").chosen().change(function(evt, params) {
+        tableWithQuery($(".filter").val());
+    });
 }
 
 function createFilterFor(key) {
     var options = [];
-    for (org in _data) {
-        options.push(_data[org][key]);
+    for (var org in _data) {
+        if ($.inArray(_data[org][key], options) === -1) {
+            options.push(_data[org][key]);
+        }
     }
-    var string = '<select class="chosen-select" multiple="' + options.length + '">';
+    var string = '<select id="' + key + '" class="chosen-select" multiple="' + options.length + '">';
     for (var i = 0; i < options.length; i++) {
         string += '<option value="' + options[i] + '">' + options[i] + '</option>';
     }
     string += '</select>';
-    $("#nameFilter").append(string);
+    $("#options").append(string);
+
+    $("#" + key).chosen({
+        max_selected_options: 5,
+        no_results_text: "Oops, nothing found!",
+        width: "90%",
+        allow_single_deselect: true,
+        placeholder_text_multiple: key,
+    });
 }

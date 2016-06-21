@@ -3,3 +3,4 @@ bower_components
 dest
 .DS_Store
 .sass-cache
+app

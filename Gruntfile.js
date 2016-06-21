@@ -6,8 +6,9 @@ module.exports = function(grunt) {
         bower: {
             dev: {
                 dest: 'dest/',
+                images_dest: 'dest/css',
                 js_dest: 'dest/js',
-                css_dest: 'dest/css'
+                css_dest: 'dest/css',
             }
         },
         uglify: {
@@ -38,27 +39,34 @@ module.exports = function(grunt) {
                 tasks: ['uglify:dev']
             },
             options: {
-              livereload: true,
+                livereload: true,
             },
         },
-        express:{
-  			all:{
-  				options:{
-  					port:3000,
-  					hostname:'localhost',
-  					bases:['./dest'],
-  					livereload:true
-  				}
-  			}
-  		}
+        express: {
+            all: {
+                options: {
+                    port: 3000,
+                    hostname: 'localhost',
+                    bases: ['./dest'],
+                    livereload: true
+                }
+            }
+        },
+        inline: {
+            dist: {
+                src: 'dest/atlas.html',
+                dest: 'app/atlas.html'
+            }
+        },
     });
 
     // Load the plugins
     grunt.loadNpmTasks('grunt-contrib-sass');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-bower');
-	grunt.loadNpmTasks('grunt-express');
+    grunt.loadNpmTasks('grunt-express');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-inline');
 
     // Default task(s).
     grunt.registerTask('default', [

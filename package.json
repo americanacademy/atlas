@@ -12,6 +12,7 @@
     "grunt-contrib-uglify": ">=1.0.1",
     "grunt-contrib-watch": ">=1.0.0",
     "grunt-express": "^1.4.1",
+    "grunt-inline": "^0.3.6",
     "gzip-size": "^3.0.0",
     "lodash": "^4.13.1",
     "pretty-bytes": "^3.0.1",
