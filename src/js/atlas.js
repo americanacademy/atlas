@@ -39,9 +39,10 @@ function tableWithQuery(query) {
         var row = _data[key];
         // Check filters
         var passed = true;
-        for (var i in tableCols) {
-            console.log(row[tableCols[i]], filters[i]);
-            if (filters[i].length > 0 && $.inArray(row[tableCols[i]], filters[i]) === -1) {
+        for (var i in filters) {
+            if (filters[i] &&
+                filters[i].length > 0 &&
+                $.inArray(row[tableCols[i]], filters[i]) === -1) {
                 passed = false;
                 break;
             }

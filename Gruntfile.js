@@ -14,12 +14,13 @@ module.exports = function(grunt) {
         uglify: {
             dev: {
                 options: {
-                    mangle: true
+                    mangle: false,
+                    beautify: true,
                 },
                 files: {
                     'dest/js/atlas.min.js': 'src/js/atlas.js'
                 }
-            }
+            },
         },
         sass: {
             dev: {
@@ -47,15 +48,9 @@ module.exports = function(grunt) {
                 options: {
                     port: 3000,
                     hostname: 'localhost',
-                    bases: ['./dest'],
+                    bases: ['./'],
                     livereload: true
                 }
-            }
-        },
-        inline: {
-            dist: {
-                src: 'dest/atlas.html',
-                dest: 'app/atlas.html'
             }
         },
     });
@@ -66,7 +61,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-bower');
     grunt.loadNpmTasks('grunt-express');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-inline');
 
     // Default task(s).
     grunt.registerTask('default', [
@@ -74,6 +68,10 @@ module.exports = function(grunt) {
         'uglify',
         'express',
         'watch',
+    ]);
+    grunt.registerTask('build', [
+        'bower',
+        'uglify',
     ]);
 
 };
