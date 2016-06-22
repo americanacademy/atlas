@@ -11,7 +11,7 @@ body {
             height: 100%;
             float: left;
             position: fixed;
-            background-color: gray;
+            background-color: black;
             color: white;
             .chosen-container {
                 // height: 50px;
@@ -39,13 +39,13 @@ body {
             cursor: pointer;
             }
             tr:hover {
-                background-color: gray;
+                background-color: black;
                 color: white;
             }
             th {
                 font-size: 1.2em;
                 height:50px;
-                background-color: gray;
+                background-color: black;
                 color: white;
             }
             td {

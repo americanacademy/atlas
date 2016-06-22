@@ -11,7 +11,7 @@ body {
       height: 100%;
       float: left;
       position: fixed;
-      background-color: gray;
+      background-color: black;
       color: white; }
       body #atlas #options .chosen-container {
         margin-top: 10px;
@@ -34,12 +34,12 @@ body {
       body #atlas table tr {
         cursor: pointer; }
       body #atlas table tr:hover {
-        background-color: gray;
+        background-color: black;
         color: white; }
       body #atlas table th {
         font-size: 1.2em;
         height: 50px;
-        background-color: gray;
+        background-color: black;
         color: white; }
       body #atlas table td {
         height: 50px;
