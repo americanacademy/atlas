@@ -1,13 +1,18 @@
 body {
     font: normal 14px/100% "Andale Mono", AndaleMono, monospace;
+    margin:0;
     #atlas {
         text-align: center;
         width: 100%;
         margin: 0 auto;
         #options {
             width: 30%;
+            padding-top:10px;
+            height: 100%;
             float: left;
             position: fixed;
+            background-color: gray;
+            color: white;
             .chosen-container {
                 // height: 50px;
                 margin-top: 10px;
@@ -28,11 +33,25 @@ body {
         table {
             width: 70%;
             font-family: sans-serif;
-            margin: 0 auto;
+            padding: 10px;
             float: right;
+            tr {
+            cursor: pointer;
+            }
+            tr:hover {
+                background-color: gray;
+                color: white;
+            }
+            th {
+                font-size: 1.2em;
+                height:50px;
+                background-color: gray;
+                color: white;
+            }
             td {
-                padding: 10px;
-                border: solid 1px #eee;
+                height: 50px;
+                border: solid 2px #eee;
+                padding: 5px;
             }
         }
     }

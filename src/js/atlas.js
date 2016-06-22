@@ -20,6 +20,15 @@ $(".filter").keypress(function(e) {
 // *****************************************************************************
 getData();
 
+function dataLoaded() {
+    loadFilters();
+    tableWithQuery("");
+    jQuery(document).ready(function($) {
+        $("tr").click(function() {
+            window.document.location = $(this).data("href");
+        });
+    });
+}
 
 // LOAD TABLE
 // *****************************************************************************
@@ -89,8 +98,7 @@ function getData() {
         url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"&limitToFirst=20",
         success: function(data) {
             _data = data;
-            loadFilters();
-            tableWithQuery("");
+            dataLoaded();
         }
     });
 }
