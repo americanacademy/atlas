@@ -25,7 +25,7 @@ function dataLoaded() {
     tableWithQuery("");
     jQuery(document).ready(function($) {
         $("tr").click(function() {
-            window.document.location = $(this).data("href");
+            window.document.location = document.location.origin + "/profile?org=" + $(this).attr('id');
         });
     });
 }
@@ -71,8 +71,8 @@ function loadList(l) {
 }
 
 function orgToRow(org) {
-    var string = "<tr>";
-    for (var i = 0; i < tableCols.length; i++) {
+    var string = "<tr id='" + org.organizations + "'>";
+    for (var i in tableCols) {
         col = tableCols[i];
         string += "<td class=" + col + ">";
         string += org[col];
