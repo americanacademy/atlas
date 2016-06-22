@@ -25,7 +25,7 @@ function dataLoaded() {
     tableWithQuery("");
     jQuery(document).ready(function($) {
         $("tr").click(function() {
-            window.document.location = document.location.origin + "/profile?org=" + $(this).attr('id');
+            window.document.location = " sciencepolicyatlas.com/profile?org=" + $(this).attr('id');
         });
     });
 }
