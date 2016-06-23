@@ -25,7 +25,7 @@ function dataLoaded() {
     tableWithQuery("");
     jQuery(document).ready(function($) {
         $("tr").click(function() {
-            window.document.location = " sciencepolicyatlas.com/profile?org=" + $(this).attr('id');
+            window.location = "http://www.sciencepolicyatlas.com/profile?org=" + $(this).attr('id');
         });
     });
 }
@@ -95,7 +95,8 @@ function getData() {
     $.ajax({
         type: "GET",
         dataType: "jsonp",
-        url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"&limitToFirst=20",
+        // url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"&limitToFirst=20",
+        url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"",
         success: function(data) {
             _data = data;
             dataLoaded();
