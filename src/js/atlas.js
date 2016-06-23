@@ -23,11 +23,6 @@ getData();
 function dataLoaded() {
     loadFilters();
     tableWithQuery("");
-    jQuery(document).ready(function($) {
-        $("tr").click(function() {
-            window.location = "http://www.sciencepolicyatlas.com/profile?org=" + $(this).attr('id');
-        });
-    });
 }
 
 // LOAD TABLE
@@ -61,6 +56,11 @@ function tableWithQuery(query) {
         }
     }
     loadList(toShow);
+    jQuery(document).ready(function($) {
+        $("tr").click(function() {
+            window.location = "http://www.sciencepolicyatlas.com/profile?org=" + $(this).attr('id');
+        });
+    });
 }
 
 function loadList(l) {
