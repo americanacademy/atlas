@@ -31,7 +31,7 @@ function tableWithQuery(query) {
     // Filter data on query, show first 10.
     $("tbody tr").remove();
     addHeader();
-    var toShow = [];
+    var toShow = {};
     // Load up the filters.
     var filters = [];
     for (var index in tableCols) {
@@ -52,7 +52,7 @@ function tableWithQuery(query) {
             }
         }
         if (passed) {
-            toShow.push(row);
+            toShow[key] = row;
         }
     }
     loadList(toShow);
@@ -65,13 +65,14 @@ function tableWithQuery(query) {
 
 function loadList(l) {
     // Add the header first
-    for (var i = 0; i < l.length; i++) {
-        table.find('tbody:last').append(orgToRow(l[i]));
+    console.log(l);
+    for (var k in l) {
+        table.find('tbody:last').append(orgToRow(k, l[k]));
     }
 }
 
-function orgToRow(org) {
-    var string = "<tr id='" + org.Organization + "'>";
+function orgToRow(id, org) {
+    var string = "<tr id='" + id + "'>";
     for (var i in tableCols) {
         col = tableCols[i];
         string += "<td class=" + col + ">";
