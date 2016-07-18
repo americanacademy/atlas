@@ -71,7 +71,7 @@ function loadList(l) {
 }
 
 function orgToRow(org) {
-    var string = "<tr id='" + org.organizations + "'>";
+    var string = "<tr id='" + org.Organization + "'>";
     for (var i in tableCols) {
         col = tableCols[i];
         string += "<td class=" + col + ">";
