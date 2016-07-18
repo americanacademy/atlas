@@ -2,9 +2,9 @@
 // *****************************************************************************
 const table = $('#orgs');
 const tableCols = [
-    "organizations",
-    "city",
-    "participation",
+    "Organization",
+    "State",
+    "Collaborations",
 ];
 _data = {};
 
