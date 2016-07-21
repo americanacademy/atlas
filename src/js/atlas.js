@@ -15,7 +15,6 @@ $(".filter").keypress(function(e) {
     }
 });
 
-
 // INIT
 // *****************************************************************************
 getData();
@@ -58,7 +57,7 @@ function tableWithQuery(query) {
     loadList(toShow);
     jQuery(document).ready(function($) {
         $("tr").click(function() {
-            window.location = "http://www.sciencepolicyatlas.com/profile?org=" + $(this).attr('id');
+            window.location = "http://www.sciencepolicyatlas.com/organization?org=" + $(this).attr('id');
         });
     });
 }
@@ -76,7 +75,18 @@ function orgToRow(id, org) {
     for (var i in tableCols) {
         col = tableCols[i];
         string += "<td class=" + col + ">";
-        string += org[col];
+        if (col == "Collaborations") {
+            var collabs = org[col].split(", ");
+            for (var i in collabs) {
+                if (i > 0) {
+                    string += ", ";
+                }
+                var collab = collabs[i];
+                string += "<a href=\"http://www.sciencepolicyatlas.com/collaboration?collab=" + collab + "\">" + collab + "</a>";
+            }
+        } else {
+            string += org[col];
+        }
         string += "</td>\n";
     }
     return string;
@@ -96,7 +106,6 @@ function getData() {
     $.ajax({
         type: "GET",
         dataType: "jsonp",
-        // url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"&limitToFirst=20",
         url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"",
         success: function(data) {
             _data = data;

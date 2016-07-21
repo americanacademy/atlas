@@ -36,6 +36,8 @@ body {
       body #atlas table tr:hover {
         background-color: black;
         color: white; }
+        body #atlas table tr:hover a {
+          color: white; }
       body #atlas table th {
         font-size: 1.2em;
         height: 50px;
@@ -46,7 +48,7 @@ body {
         border: solid 2px #eee;
         padding: 5px; }
   body a {
-    color: #fff; }
+    color: black; }
   body p {
     margin-top: 10px; }
 
