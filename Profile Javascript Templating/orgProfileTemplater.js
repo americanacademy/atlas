@@ -21,7 +21,7 @@
             type: "GET",
             dataType: "jsonp",
             // url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"&limitToFirst=20",
-            url: "https://atlas-9c89c.firebaseio.com/"+org+"/.json?",
+            url: "https://atlas-organizations.firebaseio.com/"+org+"/.json?",
             success: function(data) {
                 callback(data);
             }

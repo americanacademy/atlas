@@ -106,7 +106,7 @@ function getData() {
     $.ajax({
         type: "GET",
         dataType: "jsonp",
-        url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"",
+        url: "https://atlas-organizations.firebaseio.com/.json?orderBy=\"organizations\"",
         success: function(data) {
             _data = data;
             dataLoaded();

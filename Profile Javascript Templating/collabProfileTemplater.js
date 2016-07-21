@@ -20,7 +20,7 @@
         $.ajax({
             type: "GET",
             dataType: "jsonp",
-            url: "https://atlas-collaborations.firebaseio.com/"+collab+"/.json?",
+            url: "https://atlas-collaborations-3b6ea.firebaseio.com/"+collab+"/.json?",
             success: function(data) {
                 callback(data);
             }
