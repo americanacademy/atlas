@@ -21,8 +21,10 @@
             type: "GET",
             dataType: "jsonp",
             // url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"&limitToFirst=20",
-            url: "https://atlas-organizations.firebaseio.com/"+org+"/.json?",
+            url: "https://atlas-new-format.firebaseio.com/organizations/"+org+"/.json?",
+    // https://atlas-organizations.firebaseio.com/"+org+"/.json?",
             success: function(data) {
+                console.log(data);
                 callback(data);
             }
         });
@@ -38,7 +40,8 @@
     }
 
     function loadData(data) {
-        data["Address"] = data["Addressa"] + data["Addressb"] + data["City"] + data["ZIP"];
+        // data["Address"] = data["Addressa"] + data["Addressb"] + data["City"] + data["ZIP"];
+        data["Address"] = data.geolocation ? geolocation : "";
         for (var key in data) {
             replace("h1, h2, h3, span", "{"+ key + "}", data[key]);
         }

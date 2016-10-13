@@ -20,7 +20,8 @@
         $.ajax({
             type: "GET",
             dataType: "jsonp",
-            url: "https://atlas-collaborations-3b6ea.firebaseio.com/"+collab+"/.json?",
+            url: "https://atlas-new-format.firebaseio.com/collaborations/" +collab+"/.json?",",
+            //https://atlas-collaborations-3b6ea.firebaseio.com/"+collab+"/.json?",
             success: function(data) {
                 callback(data);
             }
@@ -37,7 +38,8 @@
     }
 
     function loadData(data) {
-        data["Address"] = data["Addressa"] + data["Addressb"] + data["City"] + data["ZIP"];
+        // data["Address"] = data["Addressa"] + data["Addressb"] + data["City"] + data["ZIP"];
+        data["Address"] = data.geolocation ? geolocation : "";
         for (var key in data) {
             replace("h1, h2, h3, span, em", "{"+ key + "}", data[key]);
         }
