@@ -1,137 +1,253 @@
 // CONSTANTS
 // *****************************************************************************
 const table = $('#orgs');
+// const tableCols = [
+//     "Organizations",
+//     // "Organization",
+//     "State",
+//     "Collaborations",
+// ];
 const tableCols = [
-    "Organization",
-    "State",
-    "Collaborations",
+    "organization_name",
+    "state",
+    "collaboration_links"//collaboration_name", 
 ];
+
+const tableColumnTitles = [
+    "Organizations",
+    "State",
+    "Collaborations"
+];
+
 _data = {};
+
+// INIT ***********************************************
+getFirebaseOrganizationData();
+createTableHeader();
 
 // SEARCH TEXT BOX CHANGE
 $(".filter").keypress(function(e) {
     if (e.which == 13) {
-        tableWithQuery($(this).val());
+        refreshTableData($(this).val());
     }
 });
 
-// INIT
-// *****************************************************************************
-getData();
-
-function dataLoaded() {
-    loadFilters();
-    tableWithQuery("");
+function hydrateView() {
+    loadSearchFilters();
+    refreshTableData("");
 }
 
-// LOAD TABLE
-// *****************************************************************************
-function tableWithQuery(query) {
-    // Filter data on query, show first 10.
-    $("tbody tr").remove();
-    addHeader();
-    var toShow = {};
-    // Load up the filters.
+function getSelectedTableFilters() {
     var filters = [];
     for (var index in tableCols) {
         var selectedValues = $('select#' + tableCols[index]).val();
-        filters[index] = selectedValues;
+        if(selectedValues && selectedValues.length > 0) {
+            filters[index] = selectedValues;
+        }
     }
-    // Now actually filter the rows.
-    for (var key in _data) {
-        var row = _data[key];
-        // Check filters
-        var passed = true;
-        for (var i in filters) {
-            if (filters[i] &&
-                filters[i].length > 0 &&
-                $.inArray(row[tableCols[i]], filters[i]) === -1) {
-                passed = false;
-                break;
+    return filters;
+}
+
+function filterData(filters) {
+    var filteredRecords = {};
+
+    if(filters) {
+        for (var key in _data) {
+            var row = _data[key];
+            // Check filters
+            var addToDisplay = true;
+            for (var i in filters) {
+
+                if (filters[i] && filters[i].length > 0) {
+                    var result = row[tableCols[i]].includes(filters[i]);
+                    if( result === false) {
+                        addToDisplay = false;
+                        break;
+                    }
+                }
+            }
+            if (addToDisplay) {
+                filteredRecords[key] = row;
             }
         }
-        if (passed) {
-            toShow[key] = row;
-        }
     }
-    loadList(toShow);
+    return filteredRecords;
+}
+// LOAD TABLE
+// *****************************************************************************
+function refreshTableData(query) {
+    // note: query param was never used! TODO?
+    // Filter data on query, show first 10.
+
+    $("tbody tr").remove();
+    // createTableHeaders();
+   
+    var filters = getSelectedTableFilters();
+    var recordsToDisplay = filterData(filters);
+    
+    createTableBody(recordsToDisplay);
+
     jQuery(document).ready(function($) {
         $("tr").click(function() {
+            console.log($(this).attr('id'));
             window.location = "http://www.sciencepolicyatlas.com/organization?org=" + $(this).attr('id');
         });
     });
 }
 
-function loadList(l) {
+function getRecord(name) {
+    //testname = "AAAneurysmOutreach";
+    //var v = "https://atlas-new-format.firebaseio.com/organizations/-KUHg_zY53oGUOhnhwEt/organization_name/.json?";
+
+ var ref = new Firebase('https://atlas-new-format.firebaseio.com/organizations');
+
+        ref.orderByChild('organization_name').startAt(name).endAt(name).once('value', function(snapshot) {
+          snapshot.forEach(function(childSnapshot) {
+
+          var key = childSnapshot.key();
+          var data = childSnapshot.val();
+
+          console.log(data);
+          var v = "http://www.sciencepolicyatlas.com/organization?org=" + key;;
+          console.log(v); 
+          if(data) {
+                window.location = "http://www.sciencepolicyatlas.com/organization?org=" + key;
+            }
+      });
+      });
+      return;
+
+    $.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        data: JSON.stringify(name),
+        url: "https://atlas-new-format.firebaseio.com/organizations/.json?",
+// https://atlas-organizations.firebaseio.com/.json",
+        // ?orderBy=\"organizations\"",
+        success: function(data) {
+            if(data) {
+                window.location = "http://www.sciencepolicyatlas.com/organization?org=" + data;
+            }
+           // hydrateView();
+
+        }
+    });
+}
+
+function createTableBody(list) {
     // Add the header first
-    console.log(l);
-    for (var k in l) {
-        table.find('tbody:last').append(orgToRow(k, l[k]));
+    console.log(list);
+    for (var pos in list) {
+        table.find('tbody:last').append(createTableRow(pos, list[pos]));
     }
 }
 
-function orgToRow(id, org) {
+function createTableRow(id, org) {
     var string = "<tr id='" + id + "'>";
     for (var i in tableCols) {
-        col = tableCols[i];
-        string += "<td class=" + col + ">";
-        if (col == "Collaborations") {
-            var collabs = org[col].split(", ");
+        var column = tableCols[i];
+
+        string += "<td class=" + column + ">";
+        if (column == "collaboration_links") {//collaboration_name") {
+            var collabs = org.collaboration_links ? org.collaboration_links.split(", ") : "";//col].split(", ");
+
             for (var i in collabs) {
-                if (i > 0) {
-                    string += ", ";
-                }
+
                 var collab = collabs[i];
-                string += "<a href=\"http://www.sciencepolicyatlas.com/collaboration?collab=" + collab + "\">" + collab + "</a>";
+
+                 var collab_key = collab ? collab.split(" | ") : ""; 
+                 for(kv in collab_key) {
+
+                   if (i > 0) {
+                       string += ", ";
+                   }
+                   var k = collab_key[1];
+                   var name = collab_key[0];
+                  // console.log(k);
+                  // console.log(name);
+                    string += "<a href=\"http://www.sciencepolicyatlas.com/collaboration?collab=" + k + "\">" + name + "</a>";
+                    break;
+                }
+                //if (i > 0) {
+                 //   string += ", ";
+                //}
+                //var collab = collabs[i];
+                //string += "<a href=\"http://www.sciencepolicyatlas.com/collaboration?collab=" + collab + "\">" + collab + "</a>";
             }
-        } else {
-            string += org[col];
+        }
+        // if(col == "Organizations") {
+        //     string += org.organization_name ? org.organization_name : 'empty';
+        // } 
+        // if(col == "State") {
+        //     string += org.state ? org.state : 'empty';
+        // }
+        else {
+            string += org[column];
         }
         string += "</td>\n";
     }
     return string;
 }
 
-function addHeader() {
+function createTableHeader() {
     var string = "<tr>";
-    for (var i = 0; i < tableCols.length; i++) {
-        string += "<th>" + tableCols[i] + "</th>";
+    for (var i = 0; i < tableColumnTitles.length; i++) {
+        string += "<th>" + tableColumnTitles[i] + "</th>";
     }
     string += "</tr>";
-    table.find('tbody:first').append(string);
+    table.find('thead').append(string);
 }
 
-// Create a server request.
-function getData() {
+function getFirebaseOrganizationData() {
     $.ajax({
         type: "GET",
         dataType: "jsonp",
-        url: "https://atlas-organizations.firebaseio.com/.json?orderBy=\"organizations\"",
+        url: "https://atlas-new-format.firebaseio.com/organizations/.json",
+// https://atlas-organizations.firebaseio.com/.json",
+        // ?orderBy=\"organizations\"",
         success: function(data) {
             _data = data;
-            dataLoaded();
+            hydrateView();
         }
     });
 }
 
 // LOAD TABLE
 // *****************************************************************************
-function loadFilters() {
+function loadSearchFilters() {
     for (var i in tableCols) {
         createFilterFor(tableCols[i]);
     }
     $(".chosen-select").chosen().change(function(evt, params) {
-        tableWithQuery($(".filter").val());
+        refreshTableData($(".filter").val());
     });
 }
 
 function createFilterFor(key) {
     var options = [];
     for (var org in _data) {
-        if ($.inArray(_data[org][key], options) === -1) {
-            options.push(_data[org][key]);
+
+        // multiple collaborations on one line comma delimited
+        var values = _data[org][key] ? _data[org][key].split(", ") : "";
+        
+        if(values.length > 0) {
+            for (var n in values) {
+                var value = values[n];
+                value = value.trim();
+
+                // collaborations have a key, don't display it
+                if(value.indexOf('|') > -1) {
+                    value = value.substr(0, value.indexOf('|'));
+                }
+                // already in filter?
+                  if($.inArray(value, options) === -1) {
+                    options.push(value);
+                }
+            }
         }
     }
+    options.sort();
+
     var string = '<select id="' + key + '" class="chosen-select" multiple="' + options.length + '">';
     for (var i = 0; i < options.length; i++) {
         string += '<option value="' + options[i] + '">' + options[i] + '</option>';
@@ -139,11 +255,16 @@ function createFilterFor(key) {
     string += '</select>';
     $("#options").append(string);
 
+    var l = key.indexOf('_') > -1 ? key.indexOf('_') : key.length;
+    var placeHolder = key.substr(0, l);
+
+    placeHolder = placeHolder.charAt(0).toUpperCase() + placeHolder.substr(1);
+
     $("#" + key).chosen({
         max_selected_options: 5,
         no_results_text: "Oops, nothing found!",
         width: "90%",
         allow_single_deselect: true,
-        placeholder_text_multiple: key,
+        placeholder_text_multiple: placeHolder,
     });
 }
