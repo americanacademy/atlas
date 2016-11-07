@@ -42,9 +42,15 @@
         for (var key in data) {
             replace("h1, h2, h3, span", "{"+ key + "}", data[key]);
         }
+        var tEnd = performance.now();
+        console.log("Organization Call took " + (tEnd - tOrgStartPerformance) + " milliseconds.")
     }
 
+     var tOrgStartPerformance;
+
     $(window).load(function() {
+        tOrgStartPerformance = performance.now();
+
         var getUrlParameter = function getUrlParameter(sParam) {
             var sPageURL = decodeURIComponent(window.location.search.substring(1)),
                 sURLVariables = sPageURL.split('&'),

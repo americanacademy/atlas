@@ -41,9 +41,14 @@
         for (var key in data) {
             replace("h1, h2, h3, span, em", "{"+ key + "}", data[key]);
         }
+        var tEnd = performance.now();
+        console.log("Collaboration Call took " + (tEnd - tCollobStartPerformance) + " milliseconds.")
     }
 
+    var tCollobStartPerformance;
+    
     $(window).load(function() {
+        tCollobStartPerformance = performance.now();
         var getUrlParameter = function getUrlParameter(sParam) {
             var sPageURL = decodeURIComponent(window.location.search.substring(1)),
                 sURLVariables = sPageURL.split('&'),
