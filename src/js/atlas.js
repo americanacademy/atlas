@@ -104,10 +104,10 @@ function refreshTableData(query) {
         var tEnd = performance.now();
         console.log("Create table took " + (tEnd - tTableStartPerformance) + " milliseconds.")
 
-        $("tr").click(function() {
-            console.log($(this).attr('id'));
-            window.location = "http://www.sciencepolicyatlas.com/organization?org=" + $(this).attr('id');
-        });
+        // $("tr").click(function() {
+        //     console.log($(this).attr('id'));
+        //     window.location = "http://www.sciencepolicyatlas.com/organization?org=" + $(this).attr('id');
+        // });
     });
 }
 
@@ -194,6 +194,9 @@ function createTableRow(id, org) {
                 //var collab = collabs[i];
                 //string += "<a href=\"http://www.sciencepolicyatlas.com/collaboration?collab=" + collab + "\">" + collab + "</a>";
             }
+        }
+        else if(column == 'organization_name') {
+            string += "<a href=\"http://www.sciencepolicyatlas.com/organization?org=" + id + "\">" + org[column] + "</a>";
         }
         // if(col == "Organizations") {
         //     string += org.organization_name ? org.organization_name : 'empty';
