@@ -1,5 +1,8 @@
 // CONSTANTS
 // *****************************************************************************
+
+ var tTableStartPerformance = performance.now();
+
 const table = $('#orgs');
 // const tableCols = [
 //     "Organizations",
@@ -10,13 +13,15 @@ const table = $('#orgs');
 const tableCols = [
     "organization_name",
     "state",
-    "collaboration_links"//collaboration_name", 
+    "collaboration_links",//collaboration_name", 
+    "organization_category"//Organization type
 ];
 
 const tableColumnTitles = [
     "Organizations",
     "State",
-    "Collaborations"
+    "Participation in Collaboration",
+    "Organization Type"
 ];
 
 _data = {};
@@ -33,11 +38,15 @@ $(".filter").keypress(function(e) {
 });
 
 function hydrateView() {
+    console.log('hydrateView');
     loadSearchFilters();
     refreshTableData("");
+
+    
 }
 
 function getSelectedTableFilters() {
+       console.log('getSelectedTableFilters');
     var filters = [];
     for (var index in tableCols) {
         var selectedValues = $('select#' + tableCols[index]).val();
@@ -48,7 +57,9 @@ function getSelectedTableFilters() {
     return filters;
 }
 
+
 function filterData(filters) {
+       console.log('filterData');
     var filteredRecords = {};
 
     if(filters) {
@@ -76,6 +87,7 @@ function filterData(filters) {
 // LOAD TABLE
 // *****************************************************************************
 function refreshTableData(query) {
+       console.log('refreshTableData');
     // note: query param was never used! TODO?
     // Filter data on query, show first 10.
 
@@ -88,6 +100,10 @@ function refreshTableData(query) {
     createTableBody(recordsToDisplay);
 
     jQuery(document).ready(function($) {
+        
+        var tEnd = performance.now();
+        console.log("Create table took " + (tEnd - tTableStartPerformance) + " milliseconds.")
+
         $("tr").click(function() {
             console.log($(this).attr('id'));
             window.location = "http://www.sciencepolicyatlas.com/organization?org=" + $(this).attr('id');
@@ -96,6 +112,7 @@ function refreshTableData(query) {
 }
 
 function getRecord(name) {
+      console.log('getRecord');
     //testname = "AAAneurysmOutreach";
     //var v = "https://atlas-new-format.firebaseio.com/organizations/-KUHg_zY53oGUOhnhwEt/organization_name/.json?";
 
@@ -135,14 +152,17 @@ function getRecord(name) {
 }
 
 function createTableBody(list) {
+    console.log('createTableBody');
     // Add the header first
-    console.log(list);
+  //  console.log(list);
     for (var pos in list) {
         table.find('tbody:last').append(createTableRow(pos, list[pos]));
     }
 }
 
 function createTableRow(id, org) {
+    console.log('createTableRow');
+
     var string = "<tr id='" + id + "'>";
     for (var i in tableCols) {
         var column = tableCols[i];
@@ -190,6 +210,7 @@ function createTableRow(id, org) {
 }
 
 function createTableHeader() {
+       console.log('createTableHeader');
     var string = "<tr>";
     for (var i = 0; i < tableColumnTitles.length; i++) {
         string += "<th>" + tableColumnTitles[i] + "</th>";
@@ -199,6 +220,7 @@ function createTableHeader() {
 }
 
 function getFirebaseOrganizationData() {
+    console.log('getFirebaseOrganizationData');
     $.ajax({
         type: "GET",
         dataType: "jsonp",
@@ -215,6 +237,7 @@ function getFirebaseOrganizationData() {
 // LOAD TABLE
 // *****************************************************************************
 function loadSearchFilters() {
+     console.log('loadSearchFilters');
     for (var i in tableCols) {
         createFilterFor(tableCols[i]);
     }
@@ -223,7 +246,64 @@ function loadSearchFilters() {
     });
 }
 
+function asc(s1, s2) {
+  var s1lower = s1.toLowerCase();
+  var s2lower = s2.toLowerCase();
+  return s1lower > s2lower? 1 : (s1lower < s2lower? -1 : 0);
+}
+
+function desc(s1, s2) {
+  var s1lower = s1.toLowerCase();
+  var s2lower = s2.toLowerCase();
+  return s1lower < s2lower? 1 : (s1lower > s2lower? -1 : 0);
+}
+
+
+
+function sortIt(dropdownkey) {
+    var id = '#' +  dropdownkey;
+    var theOptions = $(id + " option");
+    if(theOptions.length > 0) {
+
+       // var my_options = $("#my-dropdown option");
+        theOptions.sort(function(a,b) {
+            if (a.text > b.text) return 1;
+            else if (a.text < b.text) return -1;
+            else return 0
+        })
+        $(id).empty();//.append(theOptions);
+        $(id).chosen({no_results_text: "No results matched"});
+
+        //  var o = $(id).hasClass('asc') ? 'desc' : 'asc';
+        //  $(id).removeClass('asc').removeClass('desc');
+        //  $(id).addClass(o);
+        //  var asc = o === 'asc';
+
+        //     theOptions.sort(function(a,b) {
+        //     var aa = a.text;
+        //     var bb = b.text;
+        //     var alower = aa.toLowerCase();
+        //     var blower = bb.toLowerCase();
+
+        //     if(asc) {
+        //         return alower > blower? 1 : (alower < blower? -1 : 0);
+        //     } else {
+        //         return alower < blower? 1 : (alower > blower? -1 : 0);
+        //     }
+        // });
+
+        // $(id).empty();
+       // var string = '';//<select id="' + dropdownkey + '" class="chosen-select" multiple="' + theOptions.length + '">';
+      //  for (var i = 0; i < theOptions.length; i++) {
+        //    string += '<option value="' + theOptions[i] + '">' + theOptions[i] + '</option>';
+       // }
+       // string += '</select>';
+        //$(id).append(string);
+    }
+}
+
 function createFilterFor(key) {
+         console.log('createFilterFor');
     var options = [];
     for (var org in _data) {
 
@@ -246,9 +326,18 @@ function createFilterFor(key) {
             }
         }
     }
-    options.sort();
+   // 
+   if(key === 'collaboration_links') {
+        options.sort(desc);
+   } else {
+        options.sort(asc);
+    }
 
+   // var string = '<button onclick="sortIt(\'' + key + '\')">sort</button><select id="' + key + '" class="chosen-select" multiple="' + options.length + '">'; 
     var string = '<select id="' + key + '" class="chosen-select" multiple="' + options.length + '">';
+     if(key === 'organization_category') {
+        string = '<select id="' + key + '" class="chosen-select" multiple="' + options.length + '" data-placeholder="Organization type">';
+    }
     for (var i = 0; i < options.length; i++) {
         string += '<option value="' + options[i] + '">' + options[i] + '</option>';
     }
