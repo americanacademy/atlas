@@ -40,9 +40,7 @@ $(".filter").keypress(function(e) {
 function hydrateView() {
     console.log('hydrateView');
     loadSearchFilters();
-    refreshTableData("");
-
-    
+    refreshTableData('');
 }
 
 function getSelectedTableFilters() {
@@ -59,7 +57,7 @@ function getSelectedTableFilters() {
 
 
 function filterData(filters) {
-       console.log('filterData');
+    console.log('filterData');
     var filteredRecords = {};
 
     if(filters) {
@@ -102,7 +100,7 @@ function refreshTableData(query) {
     jQuery(document).ready(function($) {
         
         var tEnd = performance.now();
-        console.log("Create table took " + (tEnd - tTableStartPerformance) + " milliseconds.")
+        console.log("from start to ready took " + (tEnd - tTableStartPerformance) + " milliseconds.")
 
         // $("tr").click(function() {
         //     console.log($(this).attr('id'));
@@ -113,10 +111,7 @@ function refreshTableData(query) {
 
 function getRecord(name) {
       console.log('getRecord');
-    //testname = "AAAneurysmOutreach";
-    //var v = "https://atlas-new-format.firebaseio.com/organizations/-KUHg_zY53oGUOhnhwEt/organization_name/.json?";
-
- var ref = new Firebase('https://atlas-new-format.firebaseio.com/organizations');
+    var ref = new Firebase('https://atlas-new-format.firebaseio.com/organizations');
 
         ref.orderByChild('organization_name').startAt(name).endAt(name).once('value', function(snapshot) {
           snapshot.forEach(function(childSnapshot) {
@@ -134,21 +129,21 @@ function getRecord(name) {
       });
       return;
 
-    $.ajax({
-        type: "GET",
-        dataType: "jsonp",
-        data: JSON.stringify(name),
-        url: "https://atlas-new-format.firebaseio.com/organizations/.json?",
+    // $.ajax({
+    //     type: "GET",
+    //     dataType: "jsonp",
+    //     data: JSON.stringify(name),
+    //     url: "https://atlas-new-format.firebaseio.com/organizations/.json?",
 // https://atlas-organizations.firebaseio.com/.json",
         // ?orderBy=\"organizations\"",
-        success: function(data) {
-            if(data) {
-                window.location = "http://www.sciencepolicyatlas.com/organization?org=" + data;
-            }
-           // hydrateView();
+    //     success: function(data) {
+    //         if(data) {
+    //             window.location = "http://www.sciencepolicyatlas.com/organization?org=" + data;
+    //         }
+    //        // hydrateView();
 
-        }
-    });
+    //     }
+    // });
 }
 
 function createTableBody(list) {
@@ -213,7 +208,7 @@ function createTableRow(id, org) {
 }
 
 function createTableHeader() {
-       console.log('createTableHeader');
+    console.log('createTableHeader');
     var string = "<tr>";
     for (var i = 0; i < tableColumnTitles.length; i++) {
         string += "<th>" + tableColumnTitles[i] + "</th>";
@@ -222,17 +217,44 @@ function createTableHeader() {
     table.find('thead').append(string);
 }
 
+function getsessionStorage() {
+    var d = sessionStorage.getItem('data');
+    var data = JSON.parse(d);
+    return data;
+}
+
+function setsessionStorage(data) {
+    if(data) {
+        var dataToStore = JSON.stringify(data);
+        sessionStorage.setItem('data', dataToStore);
+    }
+}
+
 function getFirebaseOrganizationData() {
+    var tTableStartPerformance = performance.now();
+    var sData = getsessionStorage();
+    if(sData) {
+        _data = sData;
+        hydrateView();
+
+        var pn = performance.now();
+        console.log("hydrateView using session data took " + (pn - tTableStartPerformance) + " milliseconds.")
+        return;
+    }
+
     console.log('getFirebaseOrganizationData');
     $.ajax({
         type: "GET",
         dataType: "jsonp",
         url: "https://atlas-new-format.firebaseio.com/organizations/.json",
-// https://atlas-organizations.firebaseio.com/.json",
-        // ?orderBy=\"organizations\"",
         success: function(data) {
             _data = data;
+            var tEnd = performance.now();
+            console.log("getFirebaseOrganizationData took " + (tEnd - tTableStartPerformance) + " milliseconds.")
             hydrateView();
+            var tEnd2 = performance.now();
+            console.log("hydrateView took " + (tEnd2 - tEnd) + " milliseconds.")
+            setsessionStorage(_data);
         }
     });
 }
@@ -306,7 +328,7 @@ function sortIt(dropdownkey) {
 }
 
 function createFilterFor(key) {
-         console.log('createFilterFor');
+    console.log('createFilterFor');
     var options = [];
     for (var org in _data) {
 
