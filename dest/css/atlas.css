@@ -33,11 +33,6 @@ body {
       float: right; }
       body #atlas table tr {
         cursor: pointer; }
-      body #atlas table tr:hover {
-        background-color: black;
-        color: white; }
-        body #atlas table tr:hover a {
-          color: white; }
       body #atlas table th {
         font-size: 1.2em;
         height: 50px;
@@ -47,13 +42,19 @@ body {
         height: 50px;
         border: solid 2px #eee;
         padding: 5px; }
+
+      body #atlas table tr a:hover {
+        background-color: black;
+        color: white; }
+
+
   body a {
     color: black; }
   body p {
     margin-top: 10px; }
 
     .collaboration_links {
-        background-color: #2980B9; 
+        background-color: aliceblue; 
     }
 
 
