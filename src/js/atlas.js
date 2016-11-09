@@ -185,7 +185,7 @@ function createTableRow(id, org) {
                    var name = collab_key[0];
                   // console.log(k);
                   // console.log(name);
-                    string += "<a href=\"http://www.sciencepolicyatlas.com/collaboration?collab=" + k + "\">" + name + "</a>";
+                    string += "<a target=\"_top\" href=\"http://www.sciencepolicyatlas.com/collaboration?collab=" + k + "\">" + name + "</a>";
                     break;
                 }
                 //if (i > 0) {
@@ -196,7 +196,7 @@ function createTableRow(id, org) {
             }
         }
         else if(column == 'organization_name') {
-            string += "<a href=\"http://www.sciencepolicyatlas.com/organization?org=" + id + "\">" + org[column] + "</a>";
+            string += "<a target=\"_top\" href=\"http://www.sciencepolicyatlas.com/organization?org=" + id + "\">" + org[column] + "</a>";
         }
         // if(col == "Organizations") {
         //     string += org.organization_name ? org.organization_name : 'empty';
