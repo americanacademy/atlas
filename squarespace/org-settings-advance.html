@@ -1,0 +1,389 @@
+<!-- Located in:  In squarespace -> Organization Profile - > settings -> advance -->
+<style>
+#header {
+    display: none
+}
+
+#footer {
+    display: none
+}
+
+#preFooter {
+    display: none
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js">
+</script>
+<script src="//maps.googleapis.com/maps/api/js?key=AIzaSyDplsTlpTuCS-MBQggxOf0iNloTP-OBOIE"></script>
+<script type="text/javascript">
+var home = new google.maps.LatLng(42.380753, -71.110272);
+var map;
+var _markers = [];
+var _bounds = new google.maps.LatLngBounds();
+var infowindow = new google.maps.InfoWindow({
+    content: ''
+});
+
+$(window).load(function() {
+    var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : sParameterName[1];
+            }
+        }
+    };
+
+    var key = getUrlParameter('org');
+    // Download the Firebase data for this specific Key
+    getOrganizationData(key, hydrateView);
+
+});
+
+function hydrateView(data) {
+    if (data) {
+        displayMap();
+
+        // todo maybe put in db?
+        data['manager_email'] = 'sciencepolicyatlas@gmail.com';
+        hydrateElement('my-organization-name', data.organization_name);
+        hydrateElementButHideParentIfEmpty('my-about', data.about);
+        hydrateMailToElementButHideParentIfEmpty('my-manager-email', data.manager_email);
+        hydrateElementButHideParentIfEmpty('my-updated-date', data.updated_date);
+        hydrateElementButHideParentIfEmpty('my-geolocation', data.geolocation);
+        hydrateElementButHideParentIfEmpty('my-organization-category', data.organization_category);
+        hydrateElementButHideParentIfEmpty('my-organization-type-info', data.organization_type_info);
+        hydrateElementButHideParentIfEmpty('my-nonprofit-status', data.nonprofit_status);
+
+        hydrateLinkElement('my-website', data.website);
+        hydrateLinkElement('my-facebook', data.facebook);
+        hydrateLinkElement('my-twitter', data.twitter);
+        hydrateLinkElement('my-linkedin-company-page', data.linkedin_company_page);
+        hydrateLinkElement('my-linkedin-groups', data.linkedin_groups);
+        hideIfEmpty('my-links', data.website + data.facebook + data.twitter + data.linkedin_company_page + data.linkedin_groups);
+
+        hydrateCollabLinksElement('my-collaboration-links', data.collaboration_links);
+        hydrateResourceElement('my-resources', data.has_resources, data.key);
+
+        getGeolocationAddMapMarker(data);
+        getAddCollaborationMapMarkers(data.collaboration_links);
+    }
+}
+
+function hydrateResourceElement(id, hasResources, key) {
+    if (id) {
+        if (hasResources) {
+            getRecordResources(key, id, hydrateUnorderedList);
+        } else {
+            hydrateElementButHideParentIfEmpty(id, hasResources);
+        }
+    }
+}
+
+function hydrateUnorderedList(id, data) {
+    var list = '<ul>';
+    for (var prop in data) {
+        list += '<li>' + createDownLoadLink(data[prop]) + '</li>';
+    }
+    list += '</ul>';
+    hydrateElementButHideParentIfEmpty(id, list);
+}
+
+function hydrateLinkElement(id, data) {
+    if (id) {
+        testForIdInView(id);
+        if (data) {
+            $('#' + id).wrap('<a href="' + data + '" target="_blank"/>');
+        } else {
+            $('#' + id).addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateElement(id, data) {
+    if (id) {
+        testForIdInView(id);
+        if (data) {
+            $('#' + id).append('<span>' + data + '</span>');
+        } else {
+            $('#' + id).addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateElementButHideParentIfEmpty(id, data) {
+    if (id) {
+        testForIdInView(id);
+        if (data) {
+            $('#' + id).append('<span>' + data + '</span>');
+        } else {
+            $('#' + id).parent().addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateMailToElementButHideParentIfEmpty(id, data) {
+    if (id) {
+        testForIdInView(id);
+        if (data) {
+            $('#' + id).wrap('<a href="mailto:' + data + '?Subject=Send%20a%20note%20to%20the%20Atlas%20Manager" target="_top"/>');
+        } else {
+            $('#' + id).parent().addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateCollabLinksElement(id, data) {
+    if (id) {
+        var value = '';
+        testForIdInView(id);
+        if (data) {
+
+            var links = data.split(",");
+            for (var i = 0; i < links.length; ++i) {
+
+                var link = links[i];
+                var name_key = link ? link.split(" | ") : "";
+                if (name_key.length >= 2) {
+                    var name = name_key[0];
+                    var key = name_key[1];
+
+                    name = name.trim();
+                    key = key.trim();
+                    if (name.length > 0 && key.length > 0) {
+                        if (value.length > 0) {
+                            value += ', ';
+                        }
+                        var link = '<a href="http://www.sciencepolicyatlas.com/collaboration?collab=' + key + '/" target="_blank">' + name + '</a>';
+                        value += link;
+                    }
+                }
+            }
+        }
+        if (value.length > 0) {
+            $('#' + id).append('<span>' + value + '</span>');
+        } else {
+            $('#' + id).parent().addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hideIfEmpty(id, data) {
+    if (id) {
+        testForIdInView(id);
+        if (!data || data.length < 1) {
+            $('#' + id).addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function testForIdInView(id) {
+    var e = $('#' + id);
+    if (e.length < 1) {
+        console.log('ID ' + id + ' not found in the view');
+    }
+}
+
+function removeCollabKeys(data) {
+    var value = '';
+    if (data) {
+        var links = data.split(",");
+        for (var i = 0; i < links.length; ++i) {
+
+            var link = links[i];
+            var name_key = link ? link.split(" | ") : "";
+            var name = name_key[0];
+
+            name = name.trim();
+            if (name.length > 0 && value.length > 0) {
+                value += ", ";
+            }
+            value += name;
+        }
+    }
+    return value;
+}
+
+function createDownLoadLink(data) {
+    return '<strong><a href="' + data.downloadURL + '" download>' + data.name.replace(/\.[^/.]+$/, "") + '</a>, (' + data.upload_date + ') - ' + data.category + '</strong><br>';
+}
+
+function getRecordResources(key, id, callback) {
+    $.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        url: "https://atlas-new-format.firebaseio.com/resources/" + key + "/.json?",
+        success: function(data) {
+            callback(id, data);
+        }
+    });
+}
+
+// Create a server request.
+function getCollaborationData(key, callback) {
+    var thisKey = key;
+    $.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        url: "https://atlas-new-format.firebaseio.com/collaborations/" + key + "/.json?",
+        success: function(data) {
+            data['key'] = thisKey;
+            callback(data);
+        }
+    });
+}
+
+function getOrganizationData(key, callback) {
+    var thisKey = key;
+    $.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        url: "https://atlas-new-format.firebaseio.com/organizations/" + key + "/.json?",
+        success: function(data) {
+            data['key'] = thisKey;
+            callback(data);
+        }
+    });
+}
+
+$(document).ajaxStop(function() {
+    console.log('Triggered ajaxStop handler. fit map markers');
+    fitAllMapMarkers();
+});
+
+function fitAllMapMarkers() {
+    for (var i = 0; i < _markers.length; i++) {
+        _bounds.extend(_markers[i].getPosition());
+    }
+    if (_markers.length > 0) {
+        map.fitBounds(_bounds);
+    }
+}
+
+function getGeolocationAddMapMarker(record) {
+    if (record && record.geolocation && record.geolocation.length > 0) {
+        var urll = "https://maps.googleapis.com/maps/api/geocode/json?address=" + record.geolocation + "&key=AIzaSyDplsTlpTuCS-MBQggxOf0iNloTP-OBOIE";
+        $.getJSON(urll).done(function() {
+            var r = record;
+            return function(data) {
+                if (data.status === google.maps.GeocoderStatus.OK) {
+                    var v = {
+                        record: r,
+                        latlng: data.results[0].geometry.location
+                    };
+                    addMapMarker(v);
+                } else {
+                    console.log('Geocode was not successful for the following reason: ' + status);
+                }
+            };
+        }());
+    }
+}
+
+function createMapInfoContent(data) {
+    var content = '';
+
+    if (data && data.record) {
+        var l = Math.min(data.record.about.length, 70);
+        var about = data.record.about.substring(0, l) + '...';
+        var lSpace = about.lastIndexOf(' ');
+
+        if (lSpace > 0) {
+            about = about.substring(0, lSpace) + '...';
+        }
+        content = '<div id="content">' + '<div><h4>' + data.record.organization_name + '</h4><p>' + about + '</p><p><a href="http://www.sciencepolicyatlas.com/collaboration?collab=' + data.record.key + '/" target="_blank">Learn more</a>' + '</p>';
+    }
+    return content;
+}
+
+function displayMap() {
+    // also add science policy marker.
+    // if no other map info it will be centered on science policy (home)
+    var mapOptions = {
+        zoom: 10,
+        // mapTypeId: 'satellite',
+        center: home
+    };
+
+    map = new google.maps.Map(document.getElementById('my-map'),
+        mapOptions);
+
+    var title = 'Science Policy Atlas';
+    var marker = new google.maps.Marker({
+        position: home,
+        map: map,
+        // icon: google.maps.SymbolPath.CIRCLE,
+        title: title,
+        animation: google.maps.Animation.DROP
+    });
+    // _markers.push(marker);
+    var infoContent = '<div id="content"><h4>' + title + '</h4><p>The Atlas seeks to serve as a key resource for government relations professionals </p><a href=\"http://www.sciencepolicyatlas.com\" target=\"_blank\">Learn more...</a></div>';
+
+    bindContentToInfoWindow(marker, map, infowindow, infoContent);
+    addFusionTableLayer(map);
+}
+
+function addFusionTableLayer(map) {
+    congressionalDistricts = new google.maps.FusionTablesLayer({
+        query: {
+            select: 'col5',
+            from: '1QlQxBF17RR-89NCYeBmw4kFzOT3mLENp60xXAJM'
+        },
+        map: map
+    });
+}
+
+function addMapMarker(data) {
+    if (data) {
+        var title = data.record.organization_name;
+        var infoContent = createMapInfoContent(data);
+        var marker = new google.maps.Marker({
+            position: data.latlng,
+            map: map,
+            title: title,
+            animation: google.maps.Animation.DROP
+        });
+        _markers.push(marker);
+        bindContentToInfoWindow(marker, map, infowindow, infoContent);
+    }
+}
+
+function getAddCollaborationMapMarkers(data) {
+    var value = '';
+    if (data) {
+        var links = data.split(",");
+        for (var i = 0; i < links.length; ++i) {
+
+            var link = links[i];
+            var name_key = link ? link.split(" | ") : "";
+            if (name_key.length > 0) {
+                var key = name_key[1];
+                key = key.trim();
+                if (key.length > 0) {
+                    getCollaborationData(key, getGeolocationAddMapMarker);
+                }
+            }
+        }
+    }
+}
+
+// binds a map marker and infoWindow together on click event
+function bindContentToInfoWindow(marker, map, infowindow, infoContent) {
+    google.maps.event.addListener(marker, 'click', function() {
+        infowindow.setContent(infoContent);
+        infowindow.open(map, marker);
+    });
+}
+</script>
