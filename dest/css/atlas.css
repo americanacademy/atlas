@@ -6,7 +6,7 @@ body {
     width: 100%;
     margin: 0 auto; }
     body #atlas #options {
-      width: 30%;
+      width: 25%;
       padding-top: 10px;
       height: 100%;
       float: left;
@@ -27,9 +27,9 @@ body {
         font-weight: bold;
         font-size: 1.5em; }
     body #atlas table {
-      width: 70%;
+      width: 75%;
       font-family: sans-serif;
-      padding: 10px;
+      padding-left: 10px;
       float: right; }
       body #atlas table tr {
         cursor: pointer; }
