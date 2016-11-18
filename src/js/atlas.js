@@ -1,7 +1,7 @@
 // CONSTANTS
 // *****************************************************************************
 
- var tTableStartPerformance = performance.now();
+var tTableStartPerformance = performance.now();
 
 const table = $('#orgs');
 // const tableCols = [
@@ -13,8 +13,8 @@ const table = $('#orgs');
 const tableCols = [
     "organization_name",
     "state",
-    "collaboration_links",//collaboration_name", 
-    "organization_category"//Organization type
+    "collaboration_links", //collaboration_name", 
+    "organization_category" //Organization type
 ];
 
 const tableColumnTitles = [
@@ -44,11 +44,11 @@ function hydrateView() {
 }
 
 function getSelectedTableFilters() {
-       console.log('getSelectedTableFilters');
+    console.log('getSelectedTableFilters');
     var filters = [];
     for (var index in tableCols) {
         var selectedValues = $('select#' + tableCols[index]).val();
-        if(selectedValues && selectedValues.length > 0) {
+        if (selectedValues && selectedValues.length > 0) {
             filters[index] = selectedValues;
         }
     }
@@ -60,7 +60,7 @@ function filterData(filters) {
     console.log('filterData');
     var filteredRecords = {};
 
-    if(filters) {
+    if (filters) {
         for (var key in _data) {
             var row = _data[key];
             // Check filters
@@ -69,7 +69,7 @@ function filterData(filters) {
 
                 if (filters[i] && filters[i].length > 0) {
                     var result = row[tableCols[i]].includes(filters[i]);
-                    if( result === false) {
+                    if (result === false) {
                         addToDisplay = false;
                         break;
                     }
@@ -85,20 +85,20 @@ function filterData(filters) {
 // LOAD TABLE
 // *****************************************************************************
 function refreshTableData(query) {
-       console.log('refreshTableData');
+    console.log('refreshTableData');
     // note: query param was never used! TODO?
     // Filter data on query, show first 10.
 
     $("tbody tr").remove();
     // createTableHeaders();
-   
+
     var filters = getSelectedTableFilters();
     var recordsToDisplay = filterData(filters);
-    
+
     createTableBody(recordsToDisplay);
 
     jQuery(document).ready(function($) {
-        
+
         var tEnd = performance.now();
         console.log("from start to ready took " + (tEnd - tTableStartPerformance) + " milliseconds.")
 
@@ -110,32 +110,32 @@ function refreshTableData(query) {
 }
 
 function getRecord(name) {
-      console.log('getRecord');
+    console.log('getRecord');
     var ref = new Firebase('https://atlas-new-format.firebaseio.com/organizations');
 
-        ref.orderByChild('organization_name').startAt(name).endAt(name).once('value', function(snapshot) {
-          snapshot.forEach(function(childSnapshot) {
+    ref.orderByChild('organization_name').startAt(name).endAt(name).once('value', function(snapshot) {
+        snapshot.forEach(function(childSnapshot) {
 
-          var key = childSnapshot.key();
-          var data = childSnapshot.val();
+            var key = childSnapshot.key();
+            var data = childSnapshot.val();
 
-          console.log(data);
-          var v = "http://www.sciencepolicyatlas.com/organization?org=" + key;;
-          console.log(v); 
-          if(data) {
+            console.log(data);
+            var v = "http://www.sciencepolicyatlas.com/organization?org=" + key;;
+            console.log(v);
+            if (data) {
                 window.location = "http://www.sciencepolicyatlas.com/organization?org=" + key;
             }
-      });
-      });
-      return;
+        });
+    });
+    return;
 
     // $.ajax({
     //     type: "GET",
     //     dataType: "jsonp",
     //     data: JSON.stringify(name),
     //     url: "https://atlas-new-format.firebaseio.com/organizations/.json?",
-// https://atlas-organizations.firebaseio.com/.json",
-        // ?orderBy=\"organizations\"",
+    // https://atlas-organizations.firebaseio.com/.json",
+    // ?orderBy=\"organizations\"",
     //     success: function(data) {
     //         if(data) {
     //             window.location = "http://www.sciencepolicyatlas.com/organization?org=" + data;
@@ -149,7 +149,7 @@ function getRecord(name) {
 function createTableBody(list) {
     console.log('createTableBody');
     // Add the header first
-  //  console.log(list);
+    //  console.log(list);
     for (var pos in list) {
         table.find('tbody:last').append(createTableRow(pos, list[pos]));
     }
@@ -163,34 +163,33 @@ function createTableRow(id, org) {
         var column = tableCols[i];
 
         string += "<td class=" + column + ">";
-        if (column == "collaboration_links") {//collaboration_name") {
-            var collabs = org.collaboration_links ? org.collaboration_links.split(", ") : "";//col].split(", ");
+        if (column == "collaboration_links") { //collaboration_name") {
+            var collabs = org.collaboration_links ? org.collaboration_links.split("||") : ""; //col].split(", ");
 
             for (var i in collabs) {
 
                 var collab = collabs[i];
 
-                 var collab_key = collab ? collab.split(" | ") : ""; 
-                 for(kv in collab_key) {
+                var collab_key = collab ? collab.split(" | ") : "";
+                for (kv in collab_key) {
 
-                   if (i > 0) {
-                       string += ", ";
-                   }
-                   var k = collab_key[1];
-                   var name = collab_key[0];
-                  // console.log(k);
-                  // console.log(name);
+                    if (i > 0) {
+                        string += ", ";
+                    }
+                    var k = collab_key[1];
+                    var name = collab_key[0];
+                    // console.log(k);
+                    // console.log(name);
                     string += "<a target=\"_top\" href=\"http://www.sciencepolicyatlas.com/collaboration?collab=" + k + "\">" + name + "</a>";
                     break;
                 }
                 //if (i > 0) {
-                 //   string += ", ";
+                //   string += ", ";
                 //}
                 //var collab = collabs[i];
                 //string += "<a href=\"http://www.sciencepolicyatlas.com/collaboration?collab=" + collab + "\">" + collab + "</a>";
             }
-        }
-        else if(column == 'organization_name') {
+        } else if (column == 'organization_name') {
             string += "<a target=\"_top\" href=\"http://www.sciencepolicyatlas.com/organization?org=" + id + "\">" + org[column] + "</a>";
         }
         // if(col == "Organizations") {
@@ -224,7 +223,7 @@ function getsessionStorage() {
 }
 
 function setsessionStorage(data) {
-    if(data) {
+    if (data) {
         var dataToStore = JSON.stringify(data);
         sessionStorage.setItem('data', dataToStore);
     }
@@ -233,7 +232,7 @@ function setsessionStorage(data) {
 function getFirebaseOrganizationData() {
     var tTableStartPerformance = performance.now();
     var sData = getsessionStorage();
-    if(sData) {
+    if (sData) {
         _data = sData;
         hydrateView();
 
@@ -262,7 +261,7 @@ function getFirebaseOrganizationData() {
 // LOAD TABLE
 // *****************************************************************************
 function loadSearchFilters() {
-     console.log('loadSearchFilters');
+    console.log('loadSearchFilters');
     for (var i in tableCols) {
         createFilterFor(tableCols[i]);
     }
@@ -272,32 +271,32 @@ function loadSearchFilters() {
 }
 
 function asc(s1, s2) {
-  var s1lower = s1.toLowerCase();
-  var s2lower = s2.toLowerCase();
-  return s1lower > s2lower? 1 : (s1lower < s2lower? -1 : 0);
+    var s1lower = s1.toLowerCase();
+    var s2lower = s2.toLowerCase();
+    return s1lower > s2lower ? 1 : (s1lower < s2lower ? -1 : 0);
 }
 
 function desc(s1, s2) {
-  var s1lower = s1.toLowerCase();
-  var s2lower = s2.toLowerCase();
-  return s1lower < s2lower? 1 : (s1lower > s2lower? -1 : 0);
+    var s1lower = s1.toLowerCase();
+    var s2lower = s2.toLowerCase();
+    return s1lower < s2lower ? 1 : (s1lower > s2lower ? -1 : 0);
 }
 
 
 
 function sortIt(dropdownkey) {
-    var id = '#' +  dropdownkey;
+    var id = '#' + dropdownkey;
     var theOptions = $(id + " option");
-    if(theOptions.length > 0) {
+    if (theOptions.length > 0) {
 
-       // var my_options = $("#my-dropdown option");
-        theOptions.sort(function(a,b) {
+        // var my_options = $("#my-dropdown option");
+        theOptions.sort(function(a, b) {
             if (a.text > b.text) return 1;
             else if (a.text < b.text) return -1;
             else return 0
         })
-        $(id).empty();//.append(theOptions);
-        $(id).chosen({no_results_text: "No results matched"});
+        $(id).empty(); //.append(theOptions);
+        $(id).chosen({ no_results_text: "No results matched" });
 
         //  var o = $(id).hasClass('asc') ? 'desc' : 'asc';
         //  $(id).removeClass('asc').removeClass('desc');
@@ -318,11 +317,11 @@ function sortIt(dropdownkey) {
         // });
 
         // $(id).empty();
-       // var string = '';//<select id="' + dropdownkey + '" class="chosen-select" multiple="' + theOptions.length + '">';
-      //  for (var i = 0; i < theOptions.length; i++) {
+        // var string = '';//<select id="' + dropdownkey + '" class="chosen-select" multiple="' + theOptions.length + '">';
+        //  for (var i = 0; i < theOptions.length; i++) {
         //    string += '<option value="' + theOptions[i] + '">' + theOptions[i] + '</option>';
-       // }
-       // string += '</select>';
+        // }
+        // string += '</select>';
         //$(id).append(string);
     }
 }
@@ -334,33 +333,33 @@ function createFilterFor(key) {
 
         // multiple collaborations on one line comma delimited
         var values = _data[org][key] ? _data[org][key].split(", ") : "";
-        
-        if(values.length > 0) {
+
+        if (values.length > 0) {
             for (var n in values) {
                 var value = values[n];
                 value = value.trim();
 
                 // collaborations have a key, don't display it
-                if(value.indexOf('|') > -1) {
+                if (value.indexOf('|') > -1) {
                     value = value.substr(0, value.indexOf('|'));
                 }
                 // already in filter?
-                  if($.inArray(value, options) === -1) {
+                if ($.inArray(value, options) === -1) {
                     options.push(value);
                 }
             }
         }
     }
-   // 
-   if(key === 'collaboration_links') {
+    // 
+    if (key === 'collaboration_links') {
         options.sort(desc);
-   } else {
+    } else {
         options.sort(asc);
     }
 
-   // var string = '<button onclick="sortIt(\'' + key + '\')">sort</button><select id="' + key + '" class="chosen-select" multiple="' + options.length + '">'; 
+    // var string = '<button onclick="sortIt(\'' + key + '\')">sort</button><select id="' + key + '" class="chosen-select" multiple="' + options.length + '">'; 
     var string = '<select id="' + key + '" class="chosen-select" multiple="' + options.length + '">';
-     if(key === 'organization_category') {
+    if (key === 'organization_category') {
         string = '<select id="' + key + '" class="chosen-select" multiple="' + options.length + '" data-placeholder="Organization type">';
     }
     for (var i = 0; i < options.length; i++) {

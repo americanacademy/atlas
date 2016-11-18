@@ -239,8 +239,10 @@ function getCollaborationData(key, callback) {
         dataType: "jsonp",
         url: "https://atlas-new-format.firebaseio.com/collaborations/" + key + "/.json?",
         success: function(data) {
-            data['key'] = thisKey;
-            callback(data);
+            if (data) {
+                data['key'] = thisKey;
+                callback(data);
+            }
         }
     });
 }
