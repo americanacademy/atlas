@@ -26,7 +26,7 @@ const tableColumnTitles = [
 
 _data = {};
 
-// INIT ***********************************************
+// INIT ******************************************
 getFirebaseOrganizationData();
 createTableHeader();
 
