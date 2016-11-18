@@ -178,6 +178,8 @@ function createTableRow(id, org) {
                     }
                     var k = collab_key[1];
                     var name = collab_key[0];
+                    k = k.trim();
+                    name = name.trim();
                     // console.log(k);
                     // console.log(name);
                     string += "<a target=\"_top\" href=\"http://www.sciencepolicyatlas.com/collaboration?collab=" + k + "\">" + name + "</a>";
