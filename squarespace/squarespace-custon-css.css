@@ -1,0 +1,103 @@
+/*Located in:  In squarespace -> Design - > Custom CSS*/
+
+.page-title {
+  text-align: left;
+}
+#footer .sqs-block {
+  padding: 0 0 10px 20px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+.my-title {
+	color: #4caac9;
+      letter-spacing: 1px;
+    font-size: 20px;
+    font-weight: 700;
+  text-align: left;
+}
+
+.my-google-map {
+  width: 100%;
+  height: 410px;
+  float: right;
+}
+
+html,
+body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	line-height: 1.5;
+}
+a {
+      overflow-wrap: break-word;
+}
+#map {
+	height: 100%;
+}
+
+.menu-bar {
+      display: flex;
+    justify-content: space-around;
+}
+
+.my-hide {
+   display: none;
+}
+
+#atlas-iframe {
+    height: 1750px;
+}
+
+  .banner-thumbnail-wrapper {
+        height: 150px;
+        padding: 0 0;
+    }
+
+@media only screen and (max-width: 750px) {
+    .menu-bar {
+		flex-direction: column;
+	}
+  	.my-google-map {
+  		height: 220px;
+	}
+}
