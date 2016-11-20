@@ -1,10 +1,11 @@
 /*Located in:  In squarespace -> Design - > Custom CSS*/
 
 .page-title {
-  text-align: left;
+    text-align: left;
 }
+
 #footer .sqs-block {
-  padding: 0 0 10px 20px;
+    padding: 0 0 10px 20px;
 }
 
 .tooltip {
@@ -46,58 +47,57 @@
     opacity: 1;
 }
 
-
 .my-title {
-	color: #4caac9;
-      letter-spacing: 1px;
+    color: #4caac9;
+    letter-spacing: 1px;
     font-size: 20px;
     font-weight: 700;
-  text-align: left;
+    text-align: left;
+}
+
+.banner-thumbnail-wrapper {
+    height: 150px;
+    padding: 0 0;
 }
 
 .my-google-map {
-  width: 100%;
-  height: 410px;
-  float: right;
+    width: 100%;
+    height: 410px;
+    float: right;
 }
 
 html,
 body {
-	height: 100%;
-	margin: 0;
-	padding: 0;
-	line-height: 1.5;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
 }
+
 a {
-      overflow-wrap: break-word;
-}
-#map {
-	height: 100%;
+    overflow-wrap: break-word;
 }
 
 .menu-bar {
-      display: flex;
+    display: flex;
     justify-content: space-around;
 }
 
 .my-hide {
-   display: none;
+    display: none;
 }
-
-#atlas-iframe {
-    height: 1750px;
-}
-
-  .banner-thumbnail-wrapper {
-        height: 150px;
-        padding: 0 0;
-    }
 
 @media only screen and (max-width: 750px) {
     .menu-bar {
-		flex-direction: column;
-	}
-  	.my-google-map {
-  		height: 220px;
-	}
+        flex-direction: column;
+    }
+    .my-google-map {
+        height: 220px;
+    }
+    .banner-thumbnail-wrapper {
+        height: 75px;
+    }
+    #page {
+        padding: 0px 20px;
+    }
 }
