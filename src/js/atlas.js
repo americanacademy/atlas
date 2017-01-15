@@ -41,9 +41,6 @@ function hydrateView() {
     console.log('hydrateView');
     loadSearchFilters();
     refreshTableData('');
-    var rows = document.getElementsByTagName("tr").length;
-    console.log(rows);
-    $('#row-count').html(rows + ' entries');
 }
 
 function getSelectedTableFilters() {
@@ -99,6 +96,10 @@ function refreshTableData(query) {
     var recordsToDisplay = filterData(filters);
 
     createTableBody(recordsToDisplay);
+
+    var rows = document.getElementsByTagName("tr").length;
+    console.log(rows);
+    $('#row-count').html(rows + ' entries');
 
     jQuery(document).ready(function($) {
 
