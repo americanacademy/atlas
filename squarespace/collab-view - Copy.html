@@ -1,0 +1,138 @@
+<head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyDplsTlpTuCS-MBQggxOf0iNloTP-OBOIE">
+    </script>
+    <script type="text/javascript">
+    function displayMap(title, location) {
+        //var urll = 'https://maps.googleapis.com/maps/api/geocode/json?address=1441 Canal St #424 New Orleans LA  70112&key=AIzaSyDplsTlpTuCS-MBQggxOf0iNloTP-OBOIE';
+        var urll = "https://maps.googleapis.com/maps/api/geocode/json?address=" + location + "&key=AIzaSyDplsTlpTuCS-MBQggxOf0iNloTP-OBOIE";
+
+        $.getJSON(urll).done(function(data) { // Adds the JSON to the data variable.
+
+            var map = new google.maps.Map(document.getElementById('maplocationId'), {
+                zoom: 14,
+                center: {
+                    lat: 42.380753,
+                    lng: -71.110272
+                }
+            });
+
+            if (data.status === google.maps.GeocoderStatus.OK) {
+                map.setCenter(data.results[0].geometry.location);
+
+                //    var ctaLayer = new google.maps.KmlLayer({
+                //  url: 'http://googlemaps.github.io/js-v2-samples/ggeoxml/cta.kml',
+                //  map: map
+                //});
+
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: data.results[0].geometry.location,
+                    title: title + ": " + location
+                });
+
+                addFusionTableLayer(map);
+            } else {
+                alert('Geocode was not successful for the following reason: ' + status);
+            }
+        });
+    }
+
+    function addFusionTableLayer(map) {
+        congressionalDistricts = new google.maps.FusionTablesLayer({
+            query: {
+                select: 'col5',
+                from: '1QlQxBF17RR-89NCYeBmw4kFzOT3mLENp60xXAJM'
+            },
+            map: map
+        });
+    }
+
+    function addMarkers() {
+        for (var i = 0; i < _locations.length; i++) {
+            var data = _locations[i];
+            var title = data.organization_name;
+            var infoContent = createMapInfoContent(data);
+            //console.log( data.latlng.lat + ' ' + data.latlng.lng);
+            var marker = new google.maps.Marker({
+                position: data.latlng,
+                map: map,
+                title: title,
+                animation: google.maps.Animation.DROP
+            });
+
+            if (i === 0) {
+                map.setCenter(data.latlng);
+            }
+
+            bindContentToInfoWindow(marker, map, infowindow, infoContent);
+            _markers.push(marker);
+        }
+    };
+    </script>
+</head>
+
+<body>
+    <!-- <h1>New org Using ID's</h1> -->
+    <div>
+        <h2 class="my-title" id="my-organization-name"></h2></div>
+    <br>
+    <hr class="styled-hr" style="width:100%;">
+    <div><strong>About: </strong><span id="my-about"></span></div>
+    <br>
+    <div>
+        <em><strong>Have feedback? See outdated information? Send a note to the&nbsp;<span id="my-manager-email">Atlas Manager</span>.<br>This profile was last updated on <span id="my-updated-date"></span>.</strong></em>
+    </div>
+    <br>
+    <div><strong>Founding Date: </strong><span id="my-founding-year"></span></div>
+    <div><strong>Key issues: </strong><span id="my-issues"></span></div>
+    <div>
+        <strong>Collaboration type: </strong>
+        <span id="my-collaboration-type"></span>
+        <span class="tooltip">(i)
+      <span class="tooltiptext" id="my-collaboration-type-info"></span>
+        </span>
+    </div>
+    <div><strong>Participation in collaborations: </strong><span id="my-collaboration-links"></span></div>
+    <div><strong>Active/inactive: </strong><span id="my-active"></span></div>
+    <div><strong>Membership fees: </strong><span id="my-membership-fees"></span></div>
+    <div><strong>Non-profit status: </strong><span id="my-status"></span></div>
+    <div><strong>Lead contact: </strong><span id="my-contact"></span></div>
+    <div id="my-links">
+        <strong>Links: </strong>
+        <span id="my-website">Wesite</span><span id="my-facebook"> | Facebook</span><span id="my-twitter"> | Twitter</span><span id="my-linkedin-company-page"> | LinkedIn Company Page</span><span id="my-linkedin-groups"> | LinkedIn Groups</span>
+    </div>
+    <br>
+    <!-- <div>See membership | See collaboration map | Join now</div> -->
+    <br>
+    <!-- <div>Resources/Publications:</div> -->
+    <div class="my-google-map" id="my-map"></div>
+    <!-- <hr>
+
+<h2 class="my-title">{organization_name}</h2>
+<hr class="styled-hr" style="width:100%;">
+<div style="height: 10px; overflow: hidden; width: 100%;"></div>
+<strong>About: </strong><span>{about}</span>
+<br><strong>Founding Date: </strong><span>{founding_year}</span>
+<br><strong>Key issues: </strong><span>{issues}</span>
+
+<br><strong>Collaboration type: </strong><span>{collaboration_type}</span>
+<div class="tooltip">(i)<span class="tooltiptext">{collaboration_type_info}</span></div>
+<br><strong>Participation in other collaborations: </strong><span>{collaboration_links}</span>
+<br><strong>Active/inactive: </strong><span>{active}</span>
+<br><strong>Membership fees: </strong><span>{membership_fees}</span><br><strong>Non-profit status: </strong><span>{status}</span><br><strong>Lead contact: </strong><span>{contact}</span>
+
+<br><div><strong>Links: </strong><span>{website} | {facebook} | {twitter} | {linkedin_company_page} | {linkedin_groups}</span><br></div>
+<br><br><div>
+See membership | See collaboration map | Join now</div>
+
+<div>
+  Resources/Publications:
+</div>
+<br>
+<br>
+<div>
+  This profile was last updated on <span>{updated_date}</span>.
+</div>
+<br><br><br><div id="maplocationId" style="height: 400px;"></div> -->
+</body>

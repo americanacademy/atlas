@@ -1,0 +1,329 @@
+<style>
+    #header {
+        display: none
+    }
+
+    #footer {
+        display: none
+    }
+
+    #preFooter {
+        display: none
+    }
+</style>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script type="text/javascript">
+
+ var _markers = [
+        // ['London Eye, London', 51.503454,-0.119562],
+        // ['Palace of Westminster, London', 51.499633,-0.124755]
+    ];
+
+    
+
+  
+  function hydrateResourceElement(id, resources, key) {
+    var v = key;
+    if(id) {
+        // atlas-new-format.appspot.com
+        getRecordResources(key, id, hydrateUnorderedList);
+    }
+}
+
+function hydrateUnorderedList(id, data) {
+    var list = '<ul>';
+    for (var prop in data) {
+        list += '<li>' + createDownLoadLink(data[prop]) + '</li>';
+    }
+    list += '</ul>';
+    hydrateElementButHideParentIfEmpty(id, list);
+}
+
+function createDownLoadLink(data) {
+    return data.upload_date + ' - ' + data.category + ' <a href="' + data.downloadURL + '" download>' + data.name.replace(/\.[^/.]+$/, "") + '</a><br>';
+}
+
+function getRecordResources(key, id, callback) {
+    $.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        url: "https://atlas-new-format.firebaseio.com/resources/" + key + "/.json?",
+        //url: "https://atlas-collaborations-3b6ea.firebaseio.com/"+collab+"/.json?",
+        success: function(data) {
+            callback(id, data);
+        }
+    });
+}
+
+function getGeometryLocation(title, location) {
+    var urll = "https://maps.googleapis.com/maps/api/geocode/json?address=" + location + "&key=AIzaSyDplsTlpTuCS-MBQggxOf0iNloTP-OBOIE";
+
+    $.getJSON(urll).done(function(data) { // Adds the JSON to the data variable.
+
+        if (data.status === google.maps.GeocoderStatus.OK) {
+            _markers.push(title + ', ' + location + ', ' + data.results[0].geometry.location.lat + ', ' + data.results[0].geometry.location.lng);
+        } else {
+           // alert('Geocode was not successful for the following reason: ' + status);
+        }
+    });
+}
+  
+
+function addCollaborationMapMarkers(data) {
+  //  addMarkerInfo(data);
+}
+
+//function getCollaborationData(collab, title, about, website, callback) {
+function getCollaborationData(collab, callback) {
+    var key = collab;
+    $.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        url: "https://atlas-new-format.firebaseio.com/collaborations/" + collab + "/.json?",
+        success: function(data) {
+            data['key'] = key;
+            callback(data);
+        }
+    });
+}
+
+function loadCollaborationMapMarker(data) {
+    if (data && data.geolocation) {
+        var title = data.organization_name ? data.organization_name : '';
+        var l = Math(data.about.length, 70);
+        var about = data.about.sybstring(0, l) + '...';
+        displayMapLink(title, about, data.website, data.geolocation);
+    }
+}
+
+    // Create a server request.
+    function getData(collab, callback) {
+        $.ajax({
+            type: "GET",
+            dataType: "jsonp",
+          url: "https://atlas-new-format.firebaseio.com/collaborations/" +collab+"/.json?",
+            //url: "https://atlas-collaborations-3b6ea.firebaseio.com/"+collab+"/.json?",
+            success: function(data) {
+                callback(data);
+            }
+        });
+    }
+
+    function replace(selectorString, temp, value) {
+        //console.log("replacing " + temp + " with " + value);
+        $(selectorString).each(function() {
+          var item = $(this);
+          var text = $(this).text();
+          
+        //  console.log(text);
+          
+          if(temp === "{website}" && value ==="https://www.google.com/"){
+             var vv = 9;
+            
+          //a.title = "my title text";
+			//a.href = "http://example.com";
+               $(this).attr("href", "http://www.msn.com/");
+         
+          }
+          
+          var b = value.startsWith("http");
+          if(b) {
+
+            // var str = "Free Web Building Tutorials!";
+   			// var result = str.link("http://www.w3schools.com");
+           // $(this).append(result);
+        
+          }
+
+       
+         // var vv = '<a href="http://www.w3schools.com">Visit W3Schools.com!</a>';
+            text = text.replace(temp, value);
+            $(this).text(text);
+        });
+    }
+
+    function loadData(data) {
+      if(data && data.geolocation) {
+      data["Address"] = data.geolocation ? data.geolocation : "";
+       //displayMap(data.organizations, data.geolocation);
+     // data["Year'} = "1966";
+        //data["Address"] = data["Addressa"] + data["Addressb"] + data["City"] + data["ZIP"];
+      }
+        for (var key in data) {
+            replace("h1, h2, h3, span, em, a", "{"+ key + "}", data[key]);
+        }
+    }
+
+
+  
+function testForIdInView(id) {
+  var e = $('#' + id);
+  if(e.length < 1) {
+    console.log('ID ' + id + ' not found in the view');
+  }
+}
+
+function hydrateLinkElement(id, data) {
+    if (id) {
+        if (data) {
+          testForIdInView(id);
+            $('#' + id).wrap('<a href="' + data + '" target="_blank"/>');
+        } else {
+            $('#' + id).addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateElement(id, data) {
+    if (id) {
+        if (data) {
+          testForIdInView(id);
+          $('#' + id).append('<span>' + data + '</span>');
+        } else {
+            $('#' + id).addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateElementButHideParentIfEmpty(id, data) {
+  // one field, one level up
+    if (id) {
+        if (data) {
+          testForIdInView(id);
+            $('#' + id).append('<span>' + data + '</span>');
+        } else {
+            $('#' + id).parent().addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateMailToElementButHideParentIfEmpty(id, data) {
+    if (id) {
+        if (data) {
+          testForIdInView(id);
+          $('#' + id).wrap('<a href="mailto:' + data + '?Subject=Send%20a%20note%20to%20the%20Atlas%20Manager" target="_top"/>');
+        } else {
+            $('#' + id).parent().addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateCollabLinksRemoveKeysElement(id, data) {
+    if (id) {
+        var cleanedData = removeCollabKeys(data);
+        if (cleanedData) {
+          testForIdInView(id);
+            $('#' + id).append('<span>' + cleanedData + '</span>');
+        } else {
+            $('#' + id).parent().addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function removeCollabKeys(data) {
+    var value = '';
+    if (data) {
+        var links = data.split(",");
+        for (var i = 0; i < links.length; ++i) {
+
+            var link = links[i];
+            var name_key = link ? link.split(" | ") : "";
+            var name = name_key[0];
+
+            name = name.trim();
+            if (name.length > 0 && value.length > 0) {
+                value += ", ";
+            }
+            value += name;
+        }
+    }
+    return value;
+}
+
+function hydrateView(data) {
+    if (data) {
+        //
+      addCollaborationMapMarkers(data);
+       // 
+      setTimeout(displayMap, 200);
+
+        // todo remove test code? maybe put in db?
+        data['manager_email'] = 'sciencepolicyatlas@gmail.com';
+
+        hydrateElement('my-organization-name', data.organization_name);
+        hydrateElementButHideParentIfEmpty('my-about', data.about);
+
+        hydrateMailToElementButHideParentIfEmpty('my-manager-email', data.manager_email);
+
+        hydrateElementButHideParentIfEmpty('my-updated-date', data.updated_date);
+        hydrateElementButHideParentIfEmpty('my-founding-year', data.founding_year_for_collaborations_only);
+
+        // todo this field belwo looks like comma sep links?
+        hydrateElementButHideParentIfEmpty('my-issues', data.issues);
+
+        hydrateElementButHideParentIfEmpty('my-collaboration-type', data.collaboration_type);
+        hydrateElementButHideParentIfEmpty('my-collaboration-type-info', data.collaboration_type_info);
+        hydrateCollabLinksRemoveKeysElement('my-collaboration-links', data.collaboration_links);
+
+        hydrateElementButHideParentIfEmpty('my-active', data.active);
+        hydrateElementButHideParentIfEmpty('my-membership-fees', data.membership_fees);
+
+        hydrateElementButHideParentIfEmpty('my-status', data.status);
+        hydrateElementButHideParentIfEmpty('my-contact', data.contact);
+
+        hydrateLinkElement('my-website', data.website);
+        hydrateLinkElement('my-facebook', data.facebook);
+        hydrateLinkElement('my-twitter', data.twitter);
+        hydrateLinkElement('my-linkedin-company-page', data.linkedin_company_page);
+        hydrateLinkElement('my-linkedin-groups', data.linkedin_groups);
+      
+      hydrateResourceElement('my-resource', data.resources, data.key);
+      // if(data.has_resources) {
+       //     getFirebaseResources(data.key);
+       // }
+
+        
+    }
+}
+
+ function loadData(data) {
+      if(data && data.geolocation) {
+      data["Address"] = data.geolocation ? data.geolocation : "";
+       //displayMap(data.organizations, data.geolocation);
+     // data["Year'} = "1966";
+        //data["Address"] = data["Addressa"] + data["Addressb"] + data["City"] + data["ZIP"];
+      }
+        for (var key in data) {
+            replace("h1, h2, h3, span, em, a", "{"+ key + "}", data[key]);
+        }
+    }
+
+    $(window).load(function() {
+        var getUrlParameter = function getUrlParameter(sParam) {
+            var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : sParameterName[1];
+                }
+            }
+        };
+
+        var collab = getUrlParameter('collab');
+
+        // Download the Firebase data for this specific orgKey
+         getData(collab, hydrateView);//loadData);
+
+    });
+</script>

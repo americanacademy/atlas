@@ -221,7 +221,9 @@ function createDownLoadLink(data) {
     var v = '<strong><a href="' + data.downloadURL + '" download>' + data.name.replace(/\.[^/.]+$/, "") + '</a>, (' + data.upload_date + ')';
     if (data.category.length > 0) {
         v += ' - ' + data.category;
-
+    }
+    if (data.filetype && data.filetype.length > 0) {
+        v += ' - ' + data.filetype;
     }
     v += '</strong><br>';
     return v;
@@ -270,6 +272,10 @@ function getOrganizationData(key, callback) {
 $(document).ajaxStop(function() {
     console.log('Triggered ajaxStop handler. fit map markers');
     fitAllMapMarkers();
+    // hide map if we do not have addresses
+    if( _markers.length === 0) {
+        $('#my-map').addClass('my-hide');
+    }
 });
 
 function fitAllMapMarkers() {

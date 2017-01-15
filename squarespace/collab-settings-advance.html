@@ -82,6 +82,11 @@ function hydrateView(data) {
         getGeolocationAddMapMarker(data);
         getAddCollaborationMapMarkers(data.collaboration_links);
         getAddOrganizationMapMarkers(data.organization_links);
+
+        if( _markers.length == 0) {
+            // altlas - home maker only so hide if we don't have any real other addressses
+            $('#my-map').addClass('my-hide');
+        }
     }
 }
 
@@ -266,7 +271,9 @@ function createDownLoadLink(data) {
     var v = '<strong><a href="' + data.downloadURL + '" download>' + data.name.replace(/\.[^/.]+$/, "") + '</a>, (' + data.upload_date + ')';
     if (data.category.length > 0) {
         v += ' - ' + data.category;
-
+    }
+    if (data.filetype && data.filetype.length > 0) {
+        v += ' - ' + data.filetype;
     }
     v += '</strong><br>';
     return v;

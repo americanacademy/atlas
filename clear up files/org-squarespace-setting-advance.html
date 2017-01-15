@@ -1,0 +1,395 @@
+<style> #header {
+    display: none
+}
+
+#
+footer {
+    display: none
+}
+
+#
+preFooter {
+    display: none
+} </style>
+
+<script src = "https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js">
+</script>
+
+
+
+<script type = "text/javascript">
+
+    // Multiple Markers
+    var _markers = [
+        // ['London Eye, London', 51.503454,-0.119562],
+        // ['Palace of Westminster, London', 51.499633,-0.124755]
+    ];
+ 
+  
+ 
+function hydrateResourceElement(id, hasResources, key) {
+    if(id) {
+        if(hasResources) {
+            getRecordResources(key, id, hydrateUnorderedList);
+        } else {
+            hydrateElementButHideParentIfEmpty(id, hasResources);
+        }
+    }
+}
+
+function hydrateUnorderedList(id, data) {
+    var list = '<ul>';
+    for (var prop in data) {
+        list += '<li>' + createDownLoadLink(data[prop]) + '</li>';
+    }
+    list += '</ul>';
+    hydrateElementButHideParentIfEmpty(id, list);
+}
+
+function createDownLoadLink(data) {
+    return data.upload_date + ' - ' + data.category + ' <a href="' + data.downloadURL + '" download>' + data.name.replace(/\.[^/.]+$/, "") + '</a><br>';
+}
+
+function getRecordResources(key, id, callback) {
+    $.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        url: "https://atlas-new-format.firebaseio.com/resources/" + key + "/.json?",
+        //url: "https://atlas-collaborations-3b6ea.firebaseio.com/"+collab+"/.json?",
+        success: function(data) {
+            callback(id, data);
+        }
+    });
+}
+
+function getGeometryLocation(title, location) {
+    var urll = "https://maps.googleapis.com/maps/api/geocode/json?address=" + location + "&key=AIzaSyDplsTlpTuCS-MBQggxOf0iNloTP-OBOIE";
+
+    $.getJSON(urll).done(function(data) { // Adds the JSON to the data variable.
+
+        if (data.status === google.maps.GeocoderStatus.OK) {
+            _markers.push(title + ', ' + location + ', ' + data.results[0].geometry.location.lat + ', ' + data.results[0].geometry.location.lng);
+        } else {
+           // alert('Geocode was not successful for the following reason: ' + status);
+        }
+    });
+}
+  
+  
+// Create a server request.
+function getData(org, callback) {
+    var key = org;
+    $.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        // url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"&limitToFirst=20",
+        url: "https://atlas-new-format.firebaseio.com/organizations/" + org + "/.json?",
+        // url: "https://atlas-organizations.firebaseio.com/"+org+"/.json?",
+        success: function(data) {
+            data['key'] = key;
+            callback(data);
+        }
+    });
+}
+
+function addCollaborationMapMarkers(data) {
+  console.log('in  addCollaborationMapMarkers');
+    addMarkerInfo(data);
+}
+
+//function getCollaborationData(collab, title, about, website, callback) {
+function getCollaborationData(collab, callback) {
+    var key = collab;
+    $.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        // url: "https://atlas-9c89c.firebaseio.com/.json?orderBy=\"organizations\"&limitToFirst=20",
+        url: "https://atlas-new-format.firebaseio.com/collaborations/" + collab + "/.json?",
+        // url: "https://atlas-organizations.firebaseio.com/"+org+"/.json?",
+        success: function(data) {
+            data['key'] = key;
+            callback(data);
+        }
+    });
+}
+
+function loadCollaborationMapMarker(data) {
+    if (data && data.geolocation) {
+        var title = data.organization_name ? data.organization_name : '';
+        var l = Math(data.about.length, 70);
+        var about = data.about.sybstring(0, l) + '...';
+        displayMapLink(title, about, data.website, data.geolocation);
+    }
+}
+
+function replace(selectorString, temp, title, about, website, value) {
+    console.log("replacing " + temp + " with " + value);
+
+    if (value.length > 0) {
+        var v = 0;
+    }
+    if (temp.indexOf('{') === -1) {
+        // nothing to replace
+        return;
+    }
+
+    $(selectorString).each(function() {
+        var text = $(this).text();
+        if (text.indexOf(temp) > -1) {
+            // console.log("selector = " + selectorString + ". text = " + text + ". temp = " + temp +". value = " + value);
+            if (temp === '{collaboration_links}' || temp === '{organization_links}') {
+                //new
+                var links = value.split(",");
+                value = '';
+
+                for (var i = 0; i < links.length; ++i) {
+
+                    var link = links[i];
+                    var name_key = link ? link.split(" | ") : "";
+                    var name = name_key[0];
+                    name = name.trim();
+
+                    if (value.length > 0) {
+                        value += ", ";
+                    }
+                    value += name;
+
+                    //mapstuff
+                    var k = name_key[1];
+                    k = k.trim();
+                    //_markers[name] = k;
+                    getCollaborationData(k, addCollaborationMapMarkers);
+                    //getCollaborationData(k, title, about, website, addCollaborationMapMarkers);//getGeometryLocation);//loadCollaborationMapMarker);
+                }
+                //end
+                // var res = value.split("|");
+                // if(res.length > 0) {
+                //   text = text.replace(temp, res[0]);
+                //   $(this).text(text);
+                //   return;
+
+            }
+            var newText = text.replace(temp, value);
+            $(this).text(newText);
+            if (newText !== text) {
+                // replaced the field
+                return;
+            }
+        }
+    });
+}
+
+function loadData(data) {
+    if (data && data.geolocation) {
+        data["Address"] = data.geolocation ? data.geolocation : "";
+        var title = data.organization_name ? data.organization_name : '';
+
+        //_markers[title] = data.geolocation;
+        //getCollaborationData(k, getGeometryLocation);
+        //addMarkerInfo(title, data.about, data.website, data.geolocation);
+        addCollaborationMapMarkers(data);
+        //displayMap(title, data.geolocation);
+
+        for (var key in data) {
+            replace("h1, h2, h3, span, a", "{" + key + "}", title, data.about, data.website, data[key]);
+        }
+		setTimeout(displayMap, 100);
+        //setTimeout(displayMap, 10000);
+        //setTimeout(myFunction, 3000);
+        //setTimeout(addMapAndMarkers, 15000);
+        //addMapAndMarkers();
+    }
+}
+
+function addMapAndMarkers() {
+    // Display multiple markers on a map
+    var infoWindow = new google.maps.InfoWindow(),
+        i;
+
+    var map = new google.maps.Map(document.getElementById('maplocationId'), {
+        // zoom: 14//,
+        //center: {lat: 42.380753, lng: -71.110272}
+    });
+
+    // Loop through our array of markers & place each one on the map  
+    for (i = 0; i < _markers.length; i++) {
+        //if( i === 0) {
+        //  map.setCenter(markers[i][1], markers[i][2]);//data.results[0].geometry.location);
+        //}
+        var position = new google.maps.LatLng(_markers[i][1], _markers[i][2]);
+        bounds.extend(position);
+        marker = new google.maps.Marker({
+            position: position,
+            map: map,
+            title: _markers[i][0]
+        });
+
+        // // Allow each marker to have an info window    
+        // google.maps.event.addListener(marker, 'click', (function(marker, i) {
+        //     return function() {
+        //         infoWindow.setContent(infoWindowContent[i][0]);
+        //         infoWindow.open(map, marker);
+        //     }
+        // })(marker, i));
+
+        // Automatically center the map fitting all markers on the screen
+        map.fitBounds(bounds);
+    }
+}
+
+function hydrateLinkElement(id, data) {
+    if (id) {
+        if (data) {
+            $('#' + id).wrap('<a href="' + data + '" target="_blank"/>');
+        } else {
+            $('#' + id).addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateElement(id, data) {
+    if (id) {
+        if (data) {
+            $('#' + id).append('<span>' + data + '</span>');
+        } else {
+            $('#' + id).addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateElementButHideParentIfEmpty(id, data) {
+  // one field, one level up
+    if (id) {
+        if (data) {
+            $('#' + id).append('<span>' + data + '</span>');
+        } else {
+            $('#' + id).parent().addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateMailToElementButHideParentIfEmpty(id, data) {
+    if (id) {
+        if (data) {
+          $('#' + id).wrap('<a href="mailto:' + data + '?Subject=Send%20a%20note%20to%20the%20Atlas%20Manager" target="_top"/>');
+        } else {
+            $('#' + id).parent().addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function hydrateCollabLinksRemoveKeysElement(id, data) {
+    if (id) {
+        var cleanedData = removeCollabKeys(data);
+        if (cleanedData) {
+            $('#' + id).append('<span>' + cleanedData + '</span>');
+        } else {
+            $('#' + id).parent().addClass('my-hide');
+            console.log('hiding ' + id);
+        }
+    }
+}
+
+function removeCollabKeys(data) {
+    var value = '';
+    if (data) {
+        var links = data.split(",");
+        for (var i = 0; i < links.length; ++i) {
+
+            var link = links[i];
+            var name_key = link ? link.split(" | ") : "";
+            var name = name_key[0];
+
+            name = name.trim();
+            if (name.length > 0 && value.length > 0) {
+                value += ", ";
+            }
+            value += name;
+        }
+    }
+    return value;
+}
+
+function hydrateView(data) {
+    if (data) {
+      displayMap();
+       setTimeout(function() {
+         addCollaborationMapMarkers(data)
+       }, 500);
+      //addCollaborationMapMarkers(data);
+       //setTimeout(displayMap, 200);
+
+       // addCollaborationMapMarkers(data);
+       //setTimeout(displayMap, 200);
+
+        // todo remove test code? maybe put in db?
+        data['manager_email'] = 'sciencepolicyatlas@gmail.com';
+
+        hydrateElement('my-organization-name', data.organization_name);
+        hydrateElementButHideParentIfEmpty('my-about', data.about);
+
+        hydrateMailToElementButHideParentIfEmpty('my-manager-email', data.manager_email);
+
+        hydrateElementButHideParentIfEmpty('my-updated-date', data.updated_date);
+        hydrateElementButHideParentIfEmpty('my-geolocation', data.geolocation);
+        hydrateElementButHideParentIfEmpty('my-organization-category', data.organization_category);
+        hydrateElementButHideParentIfEmpty('my-organization-type-info', data.organization_type_info);
+        hydrateElementButHideParentIfEmpty('my-nonprofit-status', data.nonprofit_status);
+
+        hydrateLinkElement('my-website', data.website);
+        hydrateLinkElement('my-facebook', data.facebook);
+        hydrateLinkElement('my-twitter', data.twitter);
+        hydrateLinkElement('my-linkedin-company-page', data.linkedin_company_page);
+        hydrateLinkElement('my-linkedin-groups', data.linkedin_groups);
+
+        hydrateCollabLinksRemoveKeysElement('my-collaboration-links', data.collaboration_links);
+      hydrateResourceElement('my-resources', data.resources, data.key);
+     // if(data.has_resources) {
+     //       getFirebaseResources(data.key);
+     //   }
+    }
+}
+
+$(window).load(function() {
+
+    console.log('in settings script the window onload');
+
+    // // new stuff
+    //var twit_lk = 'https://twitter.com/aaaoutreach';
+    // $('#my-website').wrap('<a href="' + twit_lk + '" target="_blank"/>');
+    // $('#my-facebook').wrap('<a href="' + twit_lk + '" target="_blank"/>');
+    // $('#my-twitter').wrap('<a href="' + twit_lk + '" target="_blank"/>');
+    // $('#my-linkedincompanypage').wrap('<a href="' + twit_lk + '" target="_blank"/>');
+    // $('#my-linkedingroups').wrap('<a href="' + twit_lk + '" target="_blank"/>');
+    // // end of new stuff
+
+    // var inputs = document.getElementsByTagName('span');
+    // for (var i = 0; i < inputs.length; i++) {
+    //     console.log(inputs[1].innerText);
+    // }
+
+    var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : sParameterName[1];
+            }
+        }
+    };
+
+    var org = getUrlParameter('org');
+    // Download the Firebase data for this specific orgKey
+    //getData(org, loadData);
+    getData(org, hydrateView);//loadData);
+
+}); </script>
