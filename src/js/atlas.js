@@ -98,9 +98,8 @@ function refreshTableData(query) {
     createTableBody(recordsToDisplay);
 
     var rows = document.getElementsByTagName("tr").length;
-    console.log(rows);
     var msg = ' entries';
-    if(row === 1) {
+    if(rows === 1) {
         msg = ' entry';
     }
     $('#row-count').html(rows + msg);
