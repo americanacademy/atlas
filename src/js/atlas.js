@@ -41,6 +41,9 @@ function hydrateView() {
     console.log('hydrateView');
     loadSearchFilters();
     refreshTableData('');
+    var rows = document.getElementsByTagName("tr").length;
+    console.log(rows);
+    $('#row-count').html(rows + ' entries');
 }
 
 function getSelectedTableFilters() {
