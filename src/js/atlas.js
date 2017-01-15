@@ -162,12 +162,12 @@ function createTableBody(list) {
         table.find('tbody:last').append(createTableRow(pos, list[pos]));
         ++count;
     }
-    // var rows = document.getElementsByTagName("tr").length;
-    // var msg = ' entries';
-    // if(rows === 1) {
-    //     msg = ' entry';
-    // }
-    // $('#row-count').html(rows + msg);
+    var rows = document.getElementsByTagName("tr").length;
+    var msg = ' entries';
+    if(rows === 1) {
+        msg = ' entry';
+    }
+    $('#row-count').html(rows + msg);
 }
 
 function createTableRow(id, org) {
