@@ -99,7 +99,11 @@ function refreshTableData(query) {
 
     var rows = document.getElementsByTagName("tr").length;
     console.log(rows);
-    $('#row-count').html(rows + (rows === 1) ? ' entry' :' entries');
+    var msg = ' entries';
+    if(row === 1) {
+        msg = ' entry';
+    }
+    $('#row-count').html(rows + msg);
 
     jQuery(document).ready(function($) {
 
