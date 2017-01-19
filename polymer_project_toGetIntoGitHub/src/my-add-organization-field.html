@@ -1,0 +1,131 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+
+<script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+
+<link rel="import" href="shared-styles.html">
+<dom-module id="my-add-organization-field">
+    <template>
+        <style include="shared-styles">
+        :host {
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        </style>
+        <paper-material class="material-card" elevation="3">
+            <h1>New Organization Field To All Records</h1>
+            <paper-input label="Name" autofocus value="{{newField}}" on-keyup="_inputKeyUp" error-message="Field Already Defined"></paper-input>
+            <span class="card-actions">
+                <paper-fab mini icon="icons:save" on-tap="_saveField" title="Save" disabled$="{{!newField}}"></paper-fab>
+                <paper-fab mini icon="icons:close" on-tap="_clearInput" title="Cancel"></paper-fab>
+            </span>
+        </paper-material>
+    </template>
+    <script>
+    Polymer({
+        is: 'my-add-organization-field',
+        properties: {
+            newField: {
+                type: String,
+                notify: true,
+                value: ''
+            },
+            displayedToast: {
+                type: Boolean,
+                notify: true,
+                value: false
+            },
+            collectionKeys: {
+                type: Array,
+                notify: true,
+                 reflectToAttribute: true,
+                  value: function() {
+                          return [];
+                      }
+            }
+        },
+        ready: function() {
+            this.getInputFields();
+        },
+        _inputKeyUp: function(e) {
+            var v = e.currentTarget.value;
+            if(v) {
+                v = v.toLowerCase();
+                e.currentTarget.invalid = this.collectionKeys.indexOf(v) > -1;
+            }
+        },
+        getInputFields: function() {
+            var ref = new Firebase(this.location);//'https://atlas-new-format.firebaseio.com/organizations');
+            var that = this;
+            ref.once('value', function(snapshot) {
+                snapshot.forEach(function(childSnapshot) {
+                    var data = childSnapshot.val();
+                    that.addToArray(data);
+                });
+            });
+        },
+        addToArray: function(data) {
+            for (var pos in data) {
+                if (this.collectionKeys.includes(pos) === false) {
+                    this.collectionKeys.push(pos);
+                }
+            }
+        },
+        _clearInput: function() {
+            this.newField = '';
+        },
+        _saveField: function() {
+            if(this.location.length === 0) {
+                return;
+            }
+            var fieldKey = this.newField.replace(/\s/g, '');
+
+            if (fieldKey.length > 0) {
+                var that = this;
+                var ref = new Firebase(this.location);
+                that.displayedToast = false;
+
+                ref.once('value', function(snapshot) {
+                    snapshot.forEach(function(childSnapshot) {
+
+                        var key = childSnapshot.key();
+                        var refRecord = new Firebase(that.location + key);
+                        var field = {};
+                        field[fieldKey] = '';
+
+                        refRecord.update(
+                            field,
+                            function(error) {
+                                var msg = 'Updated';
+                                if (error) {
+                                    msg = 'Failed to update';
+                                } else {
+                                    that._clearInput();
+                                }
+                                if(!that.displayedToast) {
+                                    that.fire('popToast', {
+                                        toast: msg
+                                    });
+                                }
+                                that.displayedToast = true;
+                            });
+                    });
+                });
+            }
+        }
+    });
+    </script>
+</dom-module>

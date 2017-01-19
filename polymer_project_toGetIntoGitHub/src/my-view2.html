@@ -1,0 +1,124 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<!-- <script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script> -->
+<script src="https://www.gstatic.com/firebasejs/3.5.2/firebase.js"></script>
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="shared-styles.html">
+<dom-module id="my-view2">
+    <template>
+        <style include="shared-styles">
+        :host {
+            display: block;
+            padding: 10px;
+        }
+        </style>
+        <div class="card upload-file">
+            <div class="flex-column-center">
+                <paper-item hidden$="[[!uploadingFile]]">[[progressBarValue]]</paper-item>
+                <paper-progress hidden$="[[!uploadingFile]]" indeterminate></paper-progress>
+            </div>
+            <paper-input on-change="_fileChange" hidden$="[[uploadingFile]]" type="file" id="filePicker"></paper-input>
+            <paper-fab class="fab-expand-collapse" disabled$="[[disableUploadBtn]]" on-tap="_uploadFile" icon="icons:cloud-upload" title="Upload file"></paper-fab>
+        </div>
+    </template>
+    <script>
+    Polymer({
+        is: 'my-view2',
+        properties: {
+            configFirebase: {
+                type: Object,
+                value: function() {
+                    return {
+                        apiKey: 'AIzaSyDTP-eiQezleFsV2WddFBAhF_WEzx_8v_g',
+                        authDomain: 'polymerfire-test.firebaseapp.com',
+                        databaseURL: 'https://polymerfire-test.firebaseio.com',
+                        storageBucket: 'atlas-new-format.appspot.com'
+                    };
+                }
+            },
+            recordKey: {
+                type: String,
+                notify: true,
+                value: 'aaa'
+            },
+            selectedFile: {
+                type: Object,
+                notify: true
+            },
+            progressBarValue: {
+                type: Number,
+                notify: true,
+                value: 0
+            },
+            uploadingFile: {
+                type: Boolean,
+                notify: true,
+                value: false
+            },
+            disableUploadBtn: {
+                type: Boolean,
+                notify: true,
+                value: true
+            }
+        },
+        ready: function() {
+            firebase.initializeApp(this.configFirebase);
+        },
+        _fileChange: function(e) {
+            this.selectedFile = this.$.filePicker.inputElement.files[0];
+            this.disableUploadBtn = false;
+        },
+        _uploadFile: function(event) {
+            if (this.selectedFile && this.recordKey) {
+
+                this.disableUploadBtn = this.uploadingFile = true;
+
+                var storageRef = firebase.storage().ref(this.recordKey + '/' + this.selectedFile.name);
+                var progress = this._upLoadProgress.bind(this);
+                var error = this._uploadError.bind(this);
+                var completed = this._upLoadCompleted.bind(this);
+                var uploadTask = storageRef.put(this.selectedFile);
+
+                uploadTask.on(
+                    firebase.storage.TaskEvent.STATE_CHANGED,
+                    progress,
+                    error,
+                    completed);
+            }
+        },
+        _upLoadProgress: function(snapshot) {
+            var percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+
+            if (!isNaN(parseFloat(percentage))) {
+                this.progressBarValue = percentage.toFixed(1);
+            }
+        },
+        _uploadError: function() {
+            this.disableUploadBtn = this.uploadingFile = false;
+            this.fire('popToast', {
+                toast: 'Error uploading ' + this.selectedFile
+            });
+        },
+        _upLoadCompleted: function() {
+            this.disableUploadBtn = this.uploadingFile = false;
+            this.progressBarValue = '';
+
+            this.fire('popToast', {
+                toast: 'Uploaded file'
+            });
+        }
+    });
+    </script>
+</dom-module>

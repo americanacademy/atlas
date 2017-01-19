@@ -1,0 +1,86 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<!-- installs
+bower install --save GoogleWebComponents/firebase-element
+ -->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/firebase-element/firebase-collection.html">
+<script src="https://www.gstatic.com/firebasejs/3.5.2/firebase.js"></script>
+<dom-module id="my-firebase-collections">
+    <template>
+        <style include="shared-styles">
+        :host {
+            display: none;
+        }
+        </style>
+        <firebase-collection location="[[collaborationlocation]]" data="{{collaborationcollection}}" order-by-child="organization_name" order-value-type="string" on-firebase-value="_collaborationLoaded"></firebase-collection>
+        <div class="div-container">
+            <template is="dom-repeat" items="{{collaborationcollection}}" as="record">
+                <div>{{record.__firebaseKey__}}
+                </div>
+            </template>
+        </div>
+        <firebase-collection location="[[organizationlocation]]" data="{{organizationcollection}}" order-by-child="organization_name" order-value-type="string" on-firebase-value="_organizationLoaded"></firebase-collection>
+        <div class="div-container">
+            <template is="dom-repeat" items="{{organizationcollection}}" as="orgrecord">
+                <div>{{orgrecord.__firebaseKey__}}
+                </div>
+            </template>
+        </div>
+    </template>
+    <script>
+    Polymer({
+        is: 'my-firebase-collections',
+        properties: {
+            collaborationlocation: {
+                type: String,
+                notify: true,
+                value: 'https://atlas-new-format.firebaseio.com/collaborations/'
+            },
+            collaborationcollection: {
+                type: Object,
+                notify: true
+            },
+            organizationlocation: {
+                tpye: String,
+                notify: true,
+                value: 'https://atlas-new-format.firebaseio.com/organizations/'
+            },
+            organizationcollection: {
+                type: Object,
+                notify: true
+            },
+            configfirebase: {
+                type: Object,
+                value: function() {
+                    return {
+                        apiKey: 'AIzaSyDTP-eiQezleFsV2WddFBAhF_WEzx_8v_g',
+                        authDomain: 'polymerfire-test.firebaseapp.com',
+                        databaseURL: 'https://polymerfire-test.firebaseio.com',
+                        storageBucket: 'atlas-new-format.appspot.com'
+                    };
+                }
+            },
+        },
+        ready: function() {
+             firebase.initializeApp(this.configfirebase);
+         },
+        _organizationLoaded: function() {
+            var l = this.organizationcollection.length;
+            console.log(l + ' organization Loaded in my-firebase-collections');
+        },
+        _collaborationLoaded: function() {
+            var l = this.collaborationcollection.length;
+            console.log(l + ' collaborations Loaded in my-firebase-collections');
+        }
+    });
+    </script>
+</dom-module>

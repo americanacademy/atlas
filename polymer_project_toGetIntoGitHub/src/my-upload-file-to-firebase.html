@@ -1,0 +1,237 @@
+<!-- my-upload-file-to-firebase.html -->
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<!-- <script src="https://www.gstatic.com/firebasejs/3.5.2/firebase.js"></script> -->
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="shared-styles.html">
+<dom-module id="my-upload-file-to-firebase">
+    <template>
+        <style include="shared-styles">
+        :host {
+            display: block;
+            padding: 10px;
+        }
+        </style>
+        <paper-material class="add-p-material" elevation="3">
+            <span class="add-header">
+                <paper-fab mini id="addfab" class="fab-expand-collapse" icon="icons:add" on-tap="_toggleView" title="New"></paper-fab>
+                <h3>Add-Store A File</h3>
+            </span>
+            <div hidden$="{{hideControl}}">
+                <div class="upload-file">
+                    <div class="flex-column-center">
+                        <paper-item hidden$="[[!uploadingFile]]">[[progressBarValue]]</paper-item>
+                        <paper-progress hidden$="[[!uploadingFile]]" indeterminate></paper-progress>
+                        <!-- value="[[progressBarValue]]" -->
+                    </div>
+                    <paper-input hidden$="[[uploadingFile]]" label="category" value="{{category}}"></paper-input>
+                    <paper-input hidden$="[[uploadingFile]]" label="file type" value="{{filetype}}"></paper-input>
+                    <paper-input on-change="_fileChange" hidden$="[[uploadingFile]]" type="file" id="filePicker"></paper-input>
+
+                    <paper-fab class="fab-expand-collapse" disabled$="[[disableUploadBtn]]" on-tap="_uploadFile" icon="icons:cloud-upload" title="Upload file"></paper-fab>
+                </div>
+            </div>
+        </paper-material>
+    </template>
+    <script>
+    Polymer({
+        is: 'my-upload-file-to-firebase',
+        properties: {
+            // configFirebase: {
+            //     type: Object,
+            //     value: function() {
+            //         return {
+            //             apiKey: 'AIzaSyDTP-eiQezleFsV2WddFBAhF_WEzx_8v_g',
+            //             authDomain: 'polymerfire-test.firebaseapp.com',
+            //             databaseURL: 'https://polymerfire-test.firebaseio.com',
+            //             storageBucket: 'atlas-new-format.appspot.com'
+            //         };
+            //     }
+            // },
+            recordkey: {
+                type: String,
+                notify: true,
+                value: ''
+            },
+            category: {
+                type: String,
+                notify: true,
+                value: ''
+            },
+            filetype: {
+                type: String,
+                notify: true,
+                value: ''
+            },
+            selectedFile: {
+                type: Object,
+                notify: true
+            },
+            progressBarValue: {
+                type: Number,
+                notify: true,
+                value: 0
+            },
+            uploadingFile: {
+                type: Boolean,
+                notify: true,
+                value: false
+            },
+            disableUploadBtn: {
+                type: Boolean,
+                notify: true,
+                value: true
+            },
+            hideControl: {
+                type: Boolean,
+                value: true,
+                notify: true
+            },
+            uploadTask: {
+                type: Object
+            }
+        },
+        ready: function() {
+            // firebase.initializeApp(this.configFirebase);
+        },
+        _resetData: function() {
+            this.disableUploadBtn = this.uploadingFile = false;
+            this.progressBarValue = 0;
+            this.uploadTask = {};
+            this.category = this.filetype = '';
+        },
+        _toggleView: function() {
+            this.hideControl = !this.hideControl;
+            var fab = this.$.addfab;
+            if (fab.icon === "icons:close") {
+                fab.icon = "icons:add"; //create"; 
+                fab.title = "Add New Resource";
+                this.collection = [];
+            } else {
+                fab.icon = "icons:close";
+                fab.title = "Close";
+            }
+        },
+        _fileChange: function(e) {
+            this.selectedFile = this.$.filePicker.inputElement.files[0];
+            this.disableUploadBtn = false;
+        },
+        _uploadFile: function(event) {
+            if (this.selectedFile && this.recordkey) {
+
+                this.disableUploadBtn = this.uploadingFile = true;
+
+                //var storageRef = firebase.storage().ref(this.recordkey + '/' + this.selectedFile.name);
+                var storageRef = firebase.storage().ref(this.selectedFile.name);
+                var progress = this._upLoadProgress.bind(this);
+                var error = this._uploadError.bind(this);
+                var completed = this._upLoadCompleted.bind(this);
+                //var
+                this.uploadTask = storageRef.put(this.selectedFile);
+
+                this.uploadTask.on(
+                    firebase.storage.TaskEvent.STATE_CHANGED,
+                    progress,
+                    error,
+                    completed);
+            }
+        },
+        _upLoadProgress: function(snapshot) {
+            var percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+
+            if (!isNaN(parseFloat(percentage))) {
+                this.progressBarValue = percentage.toFixed(0);
+            }
+        },
+        _uploadError: function() {
+            this.fire('popToast', {
+                toast: 'Error uploading ' + this.selectedFile
+            });
+            this._resetData();
+        },
+        _upLoadCompleted: function() {
+            this.fire('popToast', {
+                toast: 'Uploaded file'
+            });
+
+            if(this.uploadTask && this.uploadTask.snapshot && this.uploadTask.snapshot.metadata && this.uploadTask.snapshot.metadata.downloadURLs) {
+                var md = this.uploadTask.snapshot.metadata;
+                 var d = new Date();
+                 var y = d.getFullYear();
+                 
+                 var month_name = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+                 var m = month_name[d.getMonth()];  
+
+                var resource = {'downloadURL': md.downloadURLs[0], 'name': md.name, 'upload_date': m + ' ' + y, 'category': this.category, 'filetype': this.filetype };
+                this._upDateResource(resource);
+            }
+           this._upDateParentRecordHasResource();
+           this._resetData();
+           this._toggleView();
+        },
+        _upDateParentRecordHasResource: function() {
+            if (this.recordlocation && this.recordkey) {
+                var that = this;
+               
+                var l = this.recordlocation + this.recordkey;
+                console.log(l);
+
+                var field = {
+                    'has_resources': true
+                };
+                console.log(field);
+
+                var ref = new Firebase(l);
+                ref.update(
+                    field,
+                    function(error) {
+                        var msg = 'Updated record';
+                        if (error) {
+                            msg = 'Failed to update';
+                        } else {
+                            // that._toggleView();// already done in other update
+                        }
+                        console.log(msg);
+                        // already done in other update
+                       // that.fire('popToast', {
+                           // toast: msg
+                       // });
+                    });
+            }
+        },
+        _upDateResource: function(field) {
+            if (field) {
+                var that = this;
+                var l = 'https://atlas-new-format.firebaseio.com/resources/' + this.recordkey;
+                var ref = new Firebase(l);
+
+                ref.push(
+                    field,
+                    function(error) {
+                        var msg = 'Updated resource';
+                        if (error) {
+                            msg = 'Failed to update resource';
+                        }
+                        console.log(msg);
+                        // already done in other update
+                       // that.fire('popToast', {
+                           // toast: msg
+                       // });
+                    });
+            }
+        }
+    });
+    </script>
+</dom-module>

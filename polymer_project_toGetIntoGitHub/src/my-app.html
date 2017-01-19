@@ -1,0 +1,205 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="my-icons.html">
+
+<!-- my imports -->
+<link rel="import" href="my-firebase-collections.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="app-theme.html">
+
+<!-- bower install --save GoogleWebComponents/firebase-element -->
+<!-- bower install --save PolymerElements/iron-collapse -->
+<!-- bower install --save PolymerElements/paper-fab -->
+<!-- bower install --save PolymerElements/paper-input -->
+<!-- bower install --save PolymerElements/paper-material -->
+
+
+<dom-module id="my-app">
+  <template>
+    <style>
+      :host {
+        /*--app-primary-color: var(--dark-primary-color);*/
+        /*#4285f4;*/
+        /*--app-secondary-color: var( --default-primary-color);*/
+
+
+        --app-primary-color: var(--dark-primary-color);
+        /*#4285f4;*/
+        --app-secondary-color: var( --default-primary-color);
+
+
+        /*var(--dark-primary-color);*/
+        --app-primary-color: #4285f4;
+        --app-secondary-color: black;
+
+        display: block;
+      }
+
+      app-header {
+        color: var(--text-primary-color);
+        /*#fff;*/
+        background-color: var(--dark-primary-color);
+        /*app-primary-color);*/
+      }
+      app-header paper-icon-button {
+        --paper-icon-button-ink-color: white;
+      }
+
+      .drawer-list {
+        margin: 0 20px;
+      }
+
+      .drawer-list a {
+        display: block;
+
+        padding: 0 16px;
+
+        text-decoration: none;
+
+        color: var(--app-secondary-color);
+
+        line-height: 40px;
+      }
+
+      .drawer-list a.iron-selected {
+        color: black;
+
+        font-weight: bold;
+      }
+    </style>
+
+    <app-location route="{{route}}"></app-location>
+    <app-route
+        route="{{route}}"
+        pattern="/:page"
+        data="{{routeData}}"
+        tail="{{subroute}}"></app-route>
+
+    <app-drawer-layout fullbleed>
+      <!-- Drawer content -->
+      <app-drawer>
+        <app-toolbar>Menu</app-toolbar>
+        <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
+          <a name="view1" href="/view1">Home</a>
+          <!-- <a name="view2" href="/view2">View Two</a> -->
+          <!-- <a name="view3" href="/view3">Firebase Data Tools</a> -->
+
+          <hr>
+          <a name="collaborations-view" href="/collaborations-view">Collaborations</a>
+          <a name="add-collaboration-field" href="/add-collaboration-field">Add Collaboration Field</a>
+          <a name="add-collaboration-record" href="/add-collaboration-record">Add Collaboration Record</a>
+         
+          <hr>
+          <!-- <a name="organizations-view" href="/organizations-view">Organizations Iterate Page</a> -->
+          <a name="organizations-page-view" href="/organizations-page-view">Organizations</a>
+          <!-- <a name="organizations-search-view" href="/organizations-search-view">Organizations Search</a> -->
+          <a name="add-organization-field" href="/add-organization-field">Add Organization Field</a>
+          <a name="add-organization-record" href="/add-organization-record">Add Organization Record</a>
+        </iron-selector>
+      </app-drawer>
+
+      <!-- Main content -->
+      <app-header-layout has-scrolling-region>
+
+        <app-header condenses reveals effects="waterfall">
+          <app-toolbar>
+            <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
+            <div main-title>American Academy of Arts & Sciences: Admin Database Tool</div>
+          </app-toolbar>
+        </app-header>
+
+          <my-firebase-collections collaborationlocation="{{collaborationlocation}}" collaborationcollection="{{collaborationcollection}}" organizationlocation="{{organizationlocation}}" organizationcollection="{{organizationcollection}}"></my-firebase-collections>
+
+        <iron-pages
+            selected="[[page]]"
+            attr-for-selected="name"
+            fallback-selection="view404"
+            role="main">
+          <my-view1 name="view1"></my-view1>
+          <my-view2 name="view2"></my-view2>
+          <my-view3 name="view3"></my-view3>
+
+          <my-add-collaboration-record name="add-collaboration-record"></my-add-collaboration-record>
+          <my-add-organization-record name="add-organization-record"></my-add-organization-record>
+          
+          <my-collaborations-view name="collaborations-view" collaborationlocation="{{collaborationlocation}}" collaborationcollection="{{collaborationcollection}}" organizationlocation="[[organizationlocation]]" organizationcollection="{{organizationcollection}}"></my-collaborations-view>
+          
+          <my-organizations-page-view name="organizations-page-view" collaborationlocation="{{collaborationlocation}}" collaborationcollection="{{collaborationcollection}}" organizationlocation="[[organizationlocation]]" organizationcollection="{{organizationcollection}}"></my-organizations-page-view>
+
+          <my-organizations-search-view name="organizations-search-view" collaborationlocation="{{collaborationlocation}}" collaborationcollection="{{collaborationcollection}}" organizationlocation="[[organizationlocation]]" organizationcollection="{{organizationcollection}}"></my-organizations-search-view>
+
+          <my-organizations-view name="organizations-view" collaborationlocation="{{collaborationlocation}}" collaborationcollection="{{collaborationcollection}}" organizationlocation="[[organizationlocation]]" organizationcollection="{{organizationcollection}}"></my-organizations-view>
+          
+          <my-add-collaboration-field name="add-collaboration-field" location="{{collaborationlocation}}"></my-add-collaboration-field>
+          <my-add-organization-field name="add-organization-field" location="{{organizationlocation}}"></my-add-organization-field>
+
+          <my-view404 name="view404"></my-view404>
+        </iron-pages>
+      </app-header-layout>
+    </app-drawer-layout>
+    <paper-toast id="toaster" duration="4000">
+    </paper-toast>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'my-app',
+
+      properties: {
+        page: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_pageChanged'
+        }
+      },
+      listeners: {
+          'popToast': '_showToast'
+      },
+      _showToast: function(e) {
+          var t = this.$.toaster;
+          if (t && e && e.detail && e.detail.toast) {
+              t.text = e.detail.toast;
+              t.show();
+          }
+      },
+      observers: [
+        '_routePageChanged(routeData.page)'
+      ],
+
+      _routePageChanged: function(page) {
+        this.page = page || 'view1';
+      },
+
+      _pageChanged: function(page) {
+        // Load page import on demand. Show 404 page if fails
+        var resolvedPageUrl = this.resolveUrl('my-' + page + '.html');
+        this.importHref(resolvedPageUrl, null, this._showPage404, true);
+      },
+
+      _showPage404: function() {
+        this.page = 'view404';
+      }
+    });
+  </script>
+</dom-module>

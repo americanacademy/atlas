@@ -1,0 +1,135 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="app-theme.html">
+<!-- shared styles for all views -->
+<dom-module id="shared-styles">
+    <template>
+        <style include="app-theme"></style>
+        <style>
+        .card {
+            /*margin: 24px;*/
+            /*padding: 16px;*/
+            color: #757575;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+            margin: 15px;
+            padding: 4px 20px;
+            min-height: 75px;
+        }
+        
+        .card-actions {
+            display: flex;
+        }
+        
+        .circle {
+            display: inline-block;
+            width: 64px;
+            height: 64px;
+            text-align: center;
+            /*color: #555;*/
+            color: var(--white);
+            border-radius: 50%;
+            /*background: #ddd;*/
+            background-color: var(--default-primary-color);
+            font-size: 20px;
+            line-height: 64px;
+        }
+        
+        h1 {
+            margin: 16px 0;
+            color: #212121;
+            font-size: 22px;
+        }
+        
+        h6 {
+            margin-left: 5px;
+        }
+        
+        .material-card {
+            margin: 15px;
+            padding: 4px 20px;
+            border-radius: 5px;
+        }
+        
+        .add-header {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            /*            height: 58px;
+            align-items: baseline;*/
+        }
+        
+        .actions-fields {
+            display: flex;
+        }
+        
+        .fab-expand-collapse {
+            /*float: right;*/
+            margin-right: 20px;
+            /*background-color: darkcyan;*/
+            /*cornflowerblue;*/
+        }
+        
+        .pagination {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pagination-next-prev {
+            display: flex;
+        }
+        
+        .waiting {
+            display: flex;
+            justify-content: center;
+            margin: 5px;
+        }
+        
+        .upload-file {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .flex-column-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            float: left;
+        }
+        
+        .pagination-btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            /*justify-content: space-around;*/
+            /*paper-button {
+                min-width: 1%;
+                width: 3%;
+            }*/
+        }
+        
+        .pagination-btn {
+            /*min-width: 1%;*/
+            /*width: 3%;*/
+            width: 1%;
+            padding: 5px;
+        }
+
+      /*  .pagination-btn:active { 
+            color: lime
+;
+        }*/
+        .p-material-child-1 {
+            margin-left: 55px;
+        }
+        </style>
+    </template>
+</dom-module>

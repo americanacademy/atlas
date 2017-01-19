@@ -1,0 +1,192 @@
+<!-- my-remove-uploaded-firebase-file -->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="shared-styles.html">
+<!-- /ower install --save PolymerElements/paper-item -->
+<!-- bower install --save PolymerElements/iron-collapse -->
+<!-- bower install --save PolymerElements/paper-material -->
+<!-- bower install --save PolymerElements/paper-item -->
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input-container.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+<dom-module id="my-remove-uploaded-firebase-file">
+    <template>
+        <style include="shared-styles">
+        :host {
+            display: block;
+            padding: 10px;
+        }
+        </style>
+        <paper-material class="add-p-material" elevation="3">
+            <span class="add-header">
+                <paper-fab mini id="addfab" class="fab-expand-collapse" icon="icons:add" on-tap="_toggleView" title="New"></paper-fab>
+                <h3>Remove Stored Files</h3>
+            </span>
+            <div hidden$="{{hideControl}}" class="p-material-child-1">
+                <div>
+                    <template is="dom-repeat" items="{{collection}}">
+                        <paper-item>
+                            <paper-checkbox on-change="checkBoxChanged">[[item.name]]</paper-checkbox>
+                        </paper-item>
+                    </template>
+                </div>
+                <span class="actions-fields">
+                    <paper-fab mini icon="icons::delete" on-tap="_removeSelectedFiles" disabled$="{{nothingSelected}}" title="Delete"></paper-fab>
+                </span>
+            </div>
+        </paper-material>
+        </div>
+    </template>
+    <script>
+    Polymer({
+        is: 'my-remove-uploaded-firebase-file',
+        properties: {
+            collection: {
+                type: Array,
+                notify: true,
+                reflectToAttribute: true,
+                value: function() {
+                    return [];
+                }
+            },
+            hideControl: {
+                type: Boolean,
+                value: true,
+                notify: true
+            },
+            checkBoxCheckedCounter: {
+                type: Number,
+                notify: true,
+                value: 0
+            },
+            nothingSelected: {
+                type: Boolean,
+                notify: true,
+                value: true
+            }
+        },
+        getFirebaseStoredFiles: function() {
+            this.splice("collection", 0, this.collection.length);
+
+            var ref = new Firebase('https://atlas-new-format.firebaseio.com/resources/' + this.parentrecordkey);
+            var that = this;
+
+            ref.once('value', function(snapshot) {
+                snapshot.forEach(function(childSnapshot) {
+
+                    var key = childSnapshot.key();
+                    var data = childSnapshot.val();
+                    data['__firebaseKey__'] = key;
+                    that.push('collection', data);
+                });
+            });
+        },
+        checkBoxChanged: function(event) {
+            this.checkBoxCheckedCounter = event.target.checked ? ++this.checkBoxCheckedCounter : --this.checkBoxCheckedCounter;
+            this.nothingSelected = this.checkBoxCheckedCounter < 1;
+        },
+        _toggleView: function() {
+            this.hideControl = !this.hideControl;
+            var fab = this.$.addfab;
+            if (fab.icon === "icons:close") {
+                fab.icon = "icons:add"; //create"; 
+                fab.title = "Add New Link";
+                this.collection = [];
+            } else {
+                this.getFirebaseStoredFiles();
+                fab.icon = "icons:close";
+                fab.title = "Close";
+            }
+        },
+        _upDateParentRecordHasResource: function(recordLocation) {
+            if (recordLocation.length > 0) {
+                var that = this;
+                var field = {
+                    'has_resources': false
+                };
+
+                var ref = new Firebase(recordLocation);
+                ref.update(
+                    field,
+                    function(error) {
+                        var msg = 'Updated record';
+                        if (error) {
+                            msg = 'Failed to update';
+                        }
+                        console.log(msg);
+                        // already done in ...
+                        // that.fire('popToast', {
+                        // toast: msg
+                        // });
+                    });
+            }
+        },
+        _removeThisFirebaseRecord: function(recordLocation) {
+            var that = this;
+            var ref = new Firebase(recordLocation);
+            ref.remove(function(error) {
+                var msg = 'Removed record';
+                if (error) {
+                    msg = 'Failed to remove record';
+                }
+                console.log(msg);
+                // already done in ...
+                // that.fire('popToast', {
+                //     toast: msg
+                // });
+                that.getFirebaseStoredFiles();
+            });
+        },
+        _removeSelectedFiles: function(location) {
+            var that = this;
+            var selectedFileCount = 0;
+            var inputes = Polymer.dom(this.root).querySelectorAll('paper-checkbox');
+            var ctrl;
+
+            for (i in inputes) {
+                ctrl = inputes[i];
+                if (ctrl.checked) {
+                    ++selectedFileCount;
+
+                    // var file = this.collection.find(x => x.name === ctrl.innerText);
+                    var file = this.collection.find(function(obj) {
+                        return obj.name === ctrl.innerText;
+                    });
+
+                    if (file) {
+                        // remove stored file
+                        var storageRef = firebase.storage().ref(file.name); //ctrl.innerText);
+                        storageRef.delete().then(function(error) {
+
+                            var msg = 'Removed file';
+                            if (error) {
+                                msg = 'Failed to remove file';
+                            }
+                            console.log(msg);
+                            that.fire('popToast', {
+                                toast: msg
+                            });
+                        });
+                        // now remove file from resource node
+                        var recordLocation = 'https://atlas-new-format.firebaseio.com/resources/' + that.parentrecordkey + '/' + file.__firebaseKey__;
+                        that._removeThisFirebaseRecord(recordLocation);
+                    }
+                }
+            }
+            // all files removed from the parent record?
+            if (selectedFileCount > 0 && selectedFileCount === this.collection.length) {
+                // yes, update parent field when it has zero stored files
+                var fbl = that.fblocation + that.parentrecordkey;
+                that._upDateParentRecordHasResource(fbl);
+                this._toggleView();
+            }
+        }
+    });
+    </script>
+</dom-module>

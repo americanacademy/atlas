@@ -1,0 +1,257 @@
+<!-- my-add-organization-record-link.html-->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="shared-styles.html">
+<!-- /ower install --save PolymerElements/paper-item -->
+<!-- bower install --save PolymerElements/iron-collapse -->
+<!-- bower install --save PolymerElements/paper-material -->
+<!-- bower install --save PolymerElements/paper-item -->
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input-container.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+
+<script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+
+<dom-module id="my-add-organization-record-link">
+    <template>
+        <style include="shared-styles">
+        :host {
+            display: block;
+            padding: 10px;
+        }
+        </style>
+        <paper-material class="add-p-material" elevation="3">
+            <span class="add-header">
+                <paper-fab mini id="addfab" class="fab-expand-collapse" icon="icons:add" on-tap="_toggleView" title="New"></paper-fab>
+                <h3>Add New {{title}} Link</h3>
+            </span>
+            <div hidden$="{{hideControl}}">
+                <paper-input-container>
+                    <input id="searchBox" autofocus label="Search" class="paper-input-input" is="iron-input" bind-value="{{searchValue::input}}"></input>
+                    <!-- <paper-input id="searchBox" label="{{title}}" bind-value="{{searchValue::input}}"></paper-input> -->
+                </paper-input-container>
+                <iron-collapse id="collapse">
+                    <div>
+                    <template id="resultList" is="dom-repeat" items="{{collection}}" filter="_listFilter">
+                            <paper-item>
+                                <paper-button on-tap="_selectItem">{{item.organization_name}}</paper-button>
+                            </paper-item>
+                        </template>
+                        <!-- <template id="resultList" is="dom-repeat" items="{{collection}}" filter="_listFilter">
+                            <paper-item class="item">
+                                <paper-button on-tap="_selectItem">{{item.organization_name}}</paper-button>
+                            </paper-item>
+                        </template> -->
+                    </div>
+                </iron-collapse>
+                <span class="actions-fields">
+                    <paper-fab mini icon="icons:save" on-tap="_updateRecord" title="Save"></paper-fab>
+                    <paper-fab mini icon="icons:close" on-tap="_toggleView" title="Cancel"></paper-fab>
+                </span>
+        </paper-material>
+        </div>
+    </template>
+    <script>
+    Polymer({
+        is: 'my-add-organization-record-link',
+        properties: {
+            collection: {
+                type: Array,
+                notify: true,
+                 reflectToAttribute: true,
+                  value: function() {
+                          return [];
+                      }
+            },
+            fbCollaborationLocation: {
+                type: String,
+                value: 'https://atlas-new-format.firebaseio.com/organizations'
+            },
+            hideControl: {
+                type: Boolean,
+                value: true,
+                notify: true
+            },
+            searchValue: {
+                type: String,
+                value: '',
+                observer: "_valueChanged"
+            },
+            record: {
+                type: Object,
+                notify: true
+            },
+            parentlinkfield: {
+                type: String,
+                notify: true,
+                value: ''
+            },
+            parentlinkvalue: {
+                type: String,
+                notify: true,
+                value: ''
+            }
+        },
+        getInputFields: function() {
+         var ref = new Firebase(this.fbCollaborationLocation);//location);
+        var that = this;
+        ref.once('value', function(snapshot) {
+          snapshot.forEach(function(childSnapshot) {
+
+          var key = childSnapshot.key();
+          var data = childSnapshot.val();
+
+          data['__firebaseKey__'] = key;
+           that.push('collection', data);
+
+            
+          });
+        });
+      },
+        _toggleView: function() {
+            this.searchValue = '';
+            this.hideControl = !this.hideControl;
+            var fab = this.$.addfab;
+            if (fab.icon === "icons:close") {
+                fab.icon = "icons:add"; //create"; 
+                fab.title = "Add New Record";
+                this.collection = [];
+            } else {
+               this.getInputFields();
+                fab.icon = "icons:close";
+                fab.title = "Close";
+            }
+        },
+        _valueChanged: function(e) {
+            var collapseEl = this.$.collapse;
+
+            if (e != '') {
+                if (!collapseEl.opened) {
+                    collapseEl.toggle();
+                }
+                this.$.resultList.render();
+            } else
+            if (e == '' && collapseEl.opened) {
+                collapseEl.toggle()
+            }
+        },
+        _listFilter: function(item) {
+            if(this.hideControl) {
+                return;
+            }
+
+            if (!item || !item.organization_name) {
+                // set filter to null to disable filtering
+                return null;
+            } else {
+                var org = item.organization_name.toLowerCase();
+                var searchTerm = this.searchValue.toLowerCase();
+
+                if (searchTerm === '*') {
+                    return true;
+                }
+                var b = org.startsWith(searchTerm);
+                return b;
+            }
+        },
+        _selectItem: function(event) {
+            this.set('searchValue', event.model.item.organization_name);
+            this.set('value', event.model.item);
+            this.record = event.model.item;
+
+            var collapse = this.$.collapse;
+            collapse.toggle()
+        },
+         _updateRecord: function() {
+            var that = this;
+            //this.parentlinkvalue &&
+            if (this.parentlinkfield.length > 0 && this.fblocation && this.record && this.record.__firebaseKey__ && this.parentrecordkey) {
+
+                  // testing 
+                this._upDateLinkNode();
+                // this link field will be parsed by , then name | fb key; for now
+                var newLink = this.record.organization_name + " | " +  this.record.__firebaseKey__;
+                if(!this.parentlinkvalue) {
+                    this.parentlinkvalue = '';
+                }
+                
+                if( this.parentlinkvalue.indexOf(newLink) != -1){
+                     that.fire('popToast', {
+                                toast: 'This record already has this link'
+                            });
+                     return;
+                }
+
+                var l = this.fblocation + this.parentrecordkey;
+                var ref = new Firebase(l);
+                
+                var linkField = {};
+                if(this.parentlinkvalue.length > 0) {
+                    newLink = ' || ' + newLink;
+                }
+                
+                linkField[this.parentlinkfield] =  this.parentlinkvalue  + newLink;
+
+                 // new for flatten linked data
+                // will be used with function below
+                linkField['has_linked_records'] = 'true';
+
+                if (linkField) {
+                    ref.update(//set( //save empty fields//update(
+                        linkField,
+                        function(error) {
+                            var msg = 'Updated field';
+                            if (error) {
+                                msg = 'Failed to update';
+                            } else {
+                                that._toggleView();
+                            }
+                            //console.log(msg);
+                            that.fire('popToast', {
+                                toast: msg
+                            });
+                        });
+                }
+            }
+        },
+        _upDateLinkNode: function() {
+            // for future work
+            // flatten link record data
+            if (this.parentrecordkey && this.record && this.record.__firebaseKey__) {
+                var that = this;
+                var fbl = 'https://atlas-new-format.firebaseio.com/';
+                var l = fbl + 'linked-records/' + this.parentrecordkey + '/' + this.record.__firebaseKey__;
+                console.log(l);
+
+                var field = {
+                    'location': this.fbCollaborationLocation + '/' + this.record.__firebaseKey__,
+                    'organization_name': this.record.organization_name,
+                    'website': this.record.website
+                };
+                console.log(field);
+
+                var ref = new Firebase(l);
+                ref.update(
+                    field,
+                    function(error) {
+                        var msg = 'Updated record';
+                        if (error) {
+                            msg = 'Failed to update';
+                        } else {
+                            // that._toggleView();// already done in other update
+                        }
+                        console.log(msg);
+                        // already done in other update
+                       // that.fire('popToast', {
+                           // toast: msg
+                       // });
+                    });
+            }
+        }
+    });
+    </script>
+</dom-module>

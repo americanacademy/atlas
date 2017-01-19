@@ -1,0 +1,357 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<!-- installs
+bower install --save GoogleWebComponents/firebase-element
+bower install --save PolymerElements/iron-flex-layout
+bower install --save PolymerElements/iron-collapse
+bower install --save PolymerElements/paper-input
+bower install --save PolymerElements/paper-fab
+bower install --save PolymerElements/iron-icons -->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="my-add-organization-record-link.html">
+<link rel="import" href="my-add-collaboration-record-link.html">
+<link rel="import" href="my-upload-file-to-firebase.html">
+<script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+<link rel="import" href="my-add-record-link.html">
+<link rel="import" href="my-remove-uploaded-firebase-file.html">
+<dom-module id="my-collaborations-view">
+    <template>
+        <style include="shared-styles">
+        :host {
+            display: block;
+            padding: 10px;
+        }
+        </style>
+        <!-- <div class="waiting">
+            <paper-spinner active$="{{dataHasNotArrived}}">
+            </paper-spinner>
+            <paper-item hidden$="{{!dataHasNotArrived}}">Loading Records...</paper-item>
+        </div> -->
+        <div class="div-container">
+            <!-- hidden$="{{dataHasNotArrived}}"> -->
+            <div class="circle">{{collaborationcollection.length}}</div>
+            <h1>Collaborations</h1>
+            <input class="material-card" value="{{searchString::input}}">
+            <template is="dom-repeat" items="{{collaborationcollection}}" as="record" filter="{{computeFilter(searchString)}}">
+                <div class="card">
+                    <span class="add-header">
+                         <paper-fab mini class="fab-expand-collapse" id$="{{_recordFabBtnAttributeId(record.__firebaseKey__)}}" on-tap="_toggleView" icon="icons:expand-more" title="Expand/Collapse"></paper-fab>
+                        <h2>{{record.organization_name}}</h2>
+                        <h6>key ({{record.__firebaseKey__}})</h6>
+                        </span>
+                    <iron-collapse id$="{{_recordCollapseAttributeId(record.__firebaseKey__)}}">
+                        <template is="dom-repeat" items="{{_toArray(record)}}">
+                            <paper-input disabled$="[[_fieldsToHide(item.name)]]" label="[[item.name]]" value="{{item.value}}"></paper-input>
+                        </template>
+                        <span class="actions-fields">
+                            <paper-fab mini icon="icons:save" on-tap="_submitRecord" title="Save"></paper-fab>
+                            <paper-fab mini icon="icons:close" on-tap="_toggleView" title="Cancel"></paper-fab>
+                        </span>
+                        <my-add-organization-record-link id$="collaborationLinks{{record.__firebaseKey__}}" parentlinkvalue="{{record.organization_links}}" parentlinkfield="organization_links" parentrecordkey="[[record.__firebaseKey__]]" fblocation="{{collaborationlocation}}" title="Organization"></my-add-organization-record-link>
+                        <my-add-collaboration-record-link id$="collaborationLinks{{record.__firebaseKey__}}" parentlinkvalue="{{record.collaboration_links}}" parentlinkfield="collaboration_links" parentrecordkey="[[record.__firebaseKey__]]" fblocation="{{collaborationlocation}}" title="Collaboration"></my-add-collaboration-record-link>
+                        <my-upload-file-to-firebase recordlocation="[[collaborationlocation]]" recordkey="[[record.__firebaseKey__]]"></my-upload-file-to-firebase>
+                        <my-remove-uploaded-firebase-file id$="collaborationLinks{{record.__firebaseKey__}}" parentlinkvalue="{{record.collaboration_links}}" parentlinkfield="collaboration_links" parentrecordkey="[[record.__firebaseKey__]]" fblocation="{{collaborationlocation}}" title="Collaboration"></my-remove-uploaded-firebase-file>
+                        <!--  <my-add-record-link id$="collaborationLinks{{record.__firebaseKey__}}" parentlinkvalue="{{record.organization_links}}" parentlinkfield="organization_links" parentrecordkey="[[record.__firebaseKey__]]" fblocation="{{collaborationlocation}}" title="Organization" collection="{{organizationcollection}}"></my-add-record-link>
+
+                        <my-add-record-link id$="collaborationLinks{{record.__firebaseKey__}}" parentlinkvalue="{{record.collaboration_links}}" parentlinkfield="collaboration_links" parentrecordkey="[[record.__firebaseKey__]]" fblocation="{{collaborationlocation}}" title="Collaboration" collection="{{collaborationcollection}}"></my-add-record-link> -->
+                    </iron-collapse>
+                </div>
+            </template>
+        </div>
+    </template>
+    <script>
+    Polymer({
+        is: 'my-collaborations-view',
+        properties: {
+            // dataHasNotArrived: {
+            //         type: Boolean,
+            //         notify: true,
+            //         value: true
+            //     }
+        },
+        // observers: [
+        //     '_collectionChanged(collaborationcollection.length)'
+        // ],
+        // _collectionChanged: function(length) {
+        //   this.dataHasNotArrived = length < 1 ? true : false;
+        //   console.log('_collectionChanged ' + length + this.dataHasNotArrived);
+        // },
+        _recordCollapseAttributeId: function(id) {
+            return 'recordCollapse' + id;
+        },
+        _recordFabBtnAttributeId: function(id) {
+            return 'toggle_fab_btn' + id;
+        },
+        computeFilter: function(searchTerm) {
+            if (!searchTerm) {
+                // set filter to null to disable filtering
+                return null;
+            } else {
+                searchTerm = searchTerm.toLowerCase();
+                return function(record) {
+                    if (record && record.organization_name) {
+                        var name = record.organization_name.toLowerCase();
+                        var b = name.startsWith(searchTerm);
+
+                        return b;
+                    } else {
+                        return false;
+                    }
+                };
+            }
+        },
+        _toArray: function(obj) {
+            return Object.keys(obj).map(function(key) {
+                return {
+                    name: key,
+                    value: obj[key]
+                };
+            });
+        },
+        _fieldsToHide: function(e) {
+            return e === '__firebaseKey__' || e === 'collaboration_links' || e === 'organization_links' || e === 'updated_date' || e === 'geolocation' || e === 'has_linked_records' || e === 'has_resources';
+        },
+        _toggleView: function(event, detail, sender) {
+            var id = event.model.record.__firebaseKey__;
+            var selector = '#' + this._recordCollapseAttributeId(id);
+            this.$$(selector).toggle();
+
+            selector = '#' + this._recordFabBtnAttributeId(id);
+            var icon = this.$$(selector).icon;
+
+            if (icon === 'icons:expand-more') {
+                this.$$(selector).icon = "icons:expand-less";
+            } else {
+                this.$$(selector).icon = "icons:expand-more";
+            }
+        },
+        _titleCase: function(str) {
+            if (str.length < 1) {
+                return str;
+            }
+            return str.toLowerCase().split(' ').map(function(word) {
+                return word.replace(word[0], word[0].toUpperCase());
+            }).join(' ');
+        },
+        _updateOrganizationRecord: function(record) {
+            var that = this;
+            var ref = new Firebase(this.organizationlocation + record.__firebaseKey__);
+
+            ref.update( //set( // create own key //.push( to a time stamp key
+                record,
+                function(error) {
+                    var msg = 'Saved Record';
+                    if (error) {
+                        msg = 'Failed to add record';
+                    } else {
+                      //  that._toggleView(event);
+                    }
+                     console.log(msg);
+                    // that.fire('popToast', {
+                    //     toast: msg
+                    // });
+                });
+        },
+        _updateCollaborationRecord: function(record) {
+            var that = this;
+            var ref = new Firebase(this.collaborationlocation + record.__firebaseKey__);
+
+            ref.update( //set( // create own key //.push( to a time stamp key
+                record,
+                function(error) {
+                    var msg = 'Saved Record';
+                    if (error) {
+                        msg = 'Failed to add record';
+                    } else {
+                      //  that._toggleView(event);
+                    }
+                     console.log(msg);
+                    // that.fire('popToast', {
+                    //     toast: msg
+                    // });
+                });
+
+        },
+
+        _submitRecord: function(e) {
+            var id = e.model.record.__firebaseKey__;
+            var selector = '#' + this._recordCollapseAttributeId(id);
+            var inputes = this.$$(selector).querySelectorAll('paper-input');
+            var geoLocationinfo = {};
+            var newOrganizationName = '';
+            var newCollaborationName = '';
+            var fbKey = id;
+            var record = {};
+            var ctrl;
+            var key;
+            var v;
+
+            for (i in inputes) {
+                ctrl = inputes[i];
+                key = ctrl.label;
+                v = ctrl.value;
+
+                if (key !== undefined && v !== undefined) {
+                    if (key !== '__firebaseKey__') {
+                        // new normalize data
+                        if (key === 'organization_name' || key === 'organization_category') {
+                            v = this._titleCase(v);
+                        }
+                        if (key === 'state') {
+                            v = v.toUpperCase();
+                        }
+                        record[key] = v;
+                        if (key === 'address_1' || key === 'city' || key === 'state' || key === 'zip') {
+                            geoLocationinfo[key] = v;
+                        }
+                        if(key ==='organization_name') {
+                            newOrganizationName =  this._titleCase(v);
+                        }
+                        if(key ==='collaboration_name') {
+                            newCollaborationName =  this._titleCase(v);
+                        }
+                    }
+                }
+            }
+            if (fbKey.length === 0) {
+                return;
+            }
+
+            // testing new for organization name change links
+            //2.5 hours monday night
+            // update organization record links
+            var origName = this.collaborationcollection.find(function (f) { 
+                return f.__firebaseKey__ === fbKey;
+            }).organization_name;
+
+            if(newOrganizationName != origName) {
+                // this link field will be parsed by , then name | fb key; for now
+                var index, result;
+                var counter = 0;
+
+                for (index = 0; index < this.organizationcollection.length; ++index) {
+                    var orgRecord = this.organizationcollection[index];
+                    var colabLinks = orgRecord.collaboration_links;
+                    var findKey = " | " + fbKey;
+                    var pos = colabLinks.indexOf(findKey);//origLink);
+                    if(pos > 0) {
+                        // walk back to the start
+                        var start = pos;
+                        var end = start + findKey.length;
+                        while(start > 0) {
+                            --start;
+                            if(colabLinks[start] === '|' && colabLinks[start - 1] === '|') {
+                                start = start + 2;// example) || name | key
+                                break;
+                            }
+                        }
+                        var origSpecificLink = colabLinks.substring(start, end);
+                        var neworg =  newOrganizationName + " | " + fbKey;
+                        var newLink = colabLinks.replace(origSpecificLink, neworg);//origLink, newLink);
+                        orgRecord.collaboration_links = newLink;
+                        console.log(++counter);
+
+                         this._updateOrganizationRecord(orgRecord);
+                    }
+                }
+           
+                 // sat 8 am start
+                  // update collaboration record links
+                 var counter2 = 0;
+                  for (index = 0; index < this.collaborationcollection.length; ++index) {
+                    var colabRecord = this.collaborationcollection[index];
+                    var aaaName = colabRecord.organization_name;
+                    var colabLinks = colabRecord.collaboration_links;
+                    var findKey = " | " + fbKey;
+                    // if(counter2++ > 30) {
+                    //     var vvv = 9;
+                    // }
+                    if(colabLinks) {
+                        //console.log(counter2);
+                        var pos = colabLinks.indexOf(findKey);//origLink);
+                        if(pos > 0) {
+                            // walk back to the start
+                            var start = pos;
+                            var end = start + findKey.length;
+                            while(start > 0) {
+                                --start;
+                                if(colabLinks[start] === '|' && colabLinks[start - 1] === '|') {
+                                    start = start + 2;// example) || name | key
+                                    break;
+                                }
+                            }
+                            var origSpecificLink = colabLinks.substring(start, end);
+                            var neworg =  newOrganizationName + " | " + fbKey;
+                            var newLink = colabLinks.replace(origSpecificLink, neworg);//origLink, newLink);
+
+                            var isCurrentRecord = false;
+                            if(colabRecord === record) {
+                                isCurrentRecord = true;
+                            }
+                            colabRecord.collaboration_links = newLink;
+                            //console.log(++counter);
+
+                            if(isCurrentRecord) {
+                                record = colabRecord;
+                            }
+
+                            this._updateCollaborationRecord(colabRecord);
+                        }
+                    }    
+                }        
+            }
+
+
+
+            // create geo location
+            var geolocation = '';
+            for (var i in geoLocationinfo) {
+                if (geoLocationinfo.hasOwnProperty(i)) {
+                    geolocation += geoLocationinfo[i] + ' ';
+                }
+            }
+            if (geolocation.length > 0) {
+                record.geolocation = geolocation.trim();
+            }
+
+            record.updated_date = new Date().toLocaleDateString();
+
+            if (this.collaborationlocation.length > 0) {
+                var that = this;
+                var event = e;
+                var ref = new Firebase(this.collaborationlocation + fbKey);
+
+                ref.update(
+                    //set( // create own key //.push( to a time stamp key
+                    record,
+                    function(error) {
+                        var msg = 'Saved Record';
+                        if (error) {
+                            msg = 'Failed to add record';
+                        } else {
+                            that._toggleView(event);
+                        }
+                        //console.log(msg);
+                        that.fire('popToast', {
+                            toast: msg
+                        });
+                    });
+            }
+        }
+    });
+    </script>
+</dom-module>

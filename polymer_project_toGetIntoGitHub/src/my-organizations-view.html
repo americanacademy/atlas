@@ -1,0 +1,387 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<!-- installs
+bower install --save GoogleWebComponents/firebase-element
+bower install --save PolymerElements/iron-flex-layout
+bower install --save PolymerElements/iron-collapse
+bower install --save PolymerElements/paper-input
+bower install --save PolymerElements/paper-fab
+bower install --save PolymerElements/iron-icons -->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<!-- missing in build -->
+<link rel="import" href="../bower_components/iron-checked-element-behavior/iron-checked-element-behavior.html">
+<script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+<link rel="import" href="my-add-collaboration-record-link.html">
+<link rel="import" href="my-upload-file-to-firebase.html">
+<link rel="import" href="my-add-record-link.html">
+<dom-module id="my-organizations-view">
+    <template>
+        <style include="shared-styles">
+        :host {
+            display: block;
+            padding: 10px;
+        }
+        </style>
+        <div class="div-container">
+            <div class="circle">[[organizationcollection.length]]</div>
+            <h1>Organizations</h1>
+            <div class="waiting">
+                <paper-spinner active$="{{dataHasNotArrived}}">
+                </paper-spinner>
+                <paper-item hidden$="{{!dataHasNotArrived}}">Loading Records...</paper-item>
+            </div>
+            <div hidden$="{{dataHasNotArrived}}">
+                <paper-material class="pagination">
+                    <paper-item>Records Per Page</paper-item>
+                    <paper-radio-group selected="{{radioSelected}}">
+                        <paper-radio-button name="25">25</paper-radio-button>
+                        <paper-radio-button name="50">50</paper-radio-button>
+                        <paper-radio-button name="75">75</paper-radio-button>
+                    </paper-radio-group>
+                    <paper-item>[[organizationcollection.length]] Records</paper-item>
+                    <div class="pagination-next-prev">
+                        <paper-fab mini icon="icons:chevron-left" on-tap="_prevPage" title="Previous"></paper-fab>
+                        <paper-item>[[paginationMsg]]</paper-item>
+                        <paper-fab mini icon="icons:chevron-right" on-tap="_nextPage" title="Next"></paper-fab>
+                    </div>
+                </paper-material>
+                <input disabled$="{{!organizationcollection.length}}" class="material-card" value="{{searchString::input}}">Filter Results...
+                <template is="dom-repeat" items="{{displayCollection}}" as="record" filter="{{computeFilter(searchString)}}">
+                    <div class="card">
+                        <span class="add-header">
+                                <paper-fab mini class="fab-expand-collapse" id$="{{_recordFabBtnAttributeId(record.__firebaseKey__)}}" on-tap="_toggleView" icon="icons:expand-more" title="Expand/Collapse"></paper-fab>
+                                <h2>{{record.organization_name}}</h2>
+                                <h6>key ({{record.__firebaseKey__}})</h6>
+                            </span>
+                        <iron-collapse id$="{{_recordCollapseAttributeId(record.__firebaseKey__)}}">
+                            <template is="dom-repeat" items="{{_toArray(record)}}">
+                                <paper-input disabled$="[[_fieldsToDisable(item.name)]]" label="[[item.name]]" value="{{item.value}}"></paper-input>
+                            </template>
+                            <span class="actions-fields">
+                                    <paper-fab mini icon="icons:save" on-tap="_submitRecord" title="Save"></paper-fab>
+                                    <paper-fab mini icon="icons:close" on-tap="_toggleView" title="Cancel"></paper-fab>
+                                </span>
+                            <my-add-collaboration-record-link id$="collaborationLinks{{record.__firebaseKey__}}" parentlinkvalue="{{record.collaboration_links}}" parentlinkfield="collaboration_links" parentrecordkey="[[record.__firebaseKey__]]" fblocation="{{organizationlocation}}" title="Collaboration"></my-add-collaboration-record-link>
+                            <my-upload-file-to-firebase recordlocation="[[organizationlocation]]" recordkey="[[record.__firebaseKey__]]"></my-upload-file-to-firebase>
+                        </iron-collapse>
+                    </div>
+                </template>
+            </div>
+    </template>
+    <script>
+    Polymer({
+        is: 'my-organizations-view',
+        properties: {
+            dataHasNotArrived: {
+                type: Boolean,
+                notify: true,
+                value: true
+            },
+            collectiontest: {
+                type: Object,
+                notify: true
+            },
+            organizationcollection: {
+                type: Object,
+                notify: true,
+                // observer: '_organizationCollectionChanged'
+            },
+            recordEdit: {
+                type: Object,
+                notify: true
+            },
+            displayCollection: {
+                type: Array,
+                notify: true,
+                reflectToAttribute: true,
+                value: function() {
+                    return [];
+                },
+                observer: '_displayCollectionChanged'
+            },
+            currentPage: {
+                type: Number,
+                notify: true,
+                value: 0
+            },
+            startingRecord: {
+                type: Number,
+                notify: true,
+                value: 0
+            },
+            endingRecord: {
+                type: Number,
+                notify: true,
+                value: 0
+            },
+            recordsPerPage: {
+                type: Number,
+                notify: true,
+                value: 50
+            },
+            radioSelected: {
+                type: Number,
+                notify: true,
+                observer: '_radioBtnChanged'
+            },
+            paginationMsg: {
+                type: String,
+                notify: true,
+                value: '',
+            }
+
+        },
+        observers: [
+            '_collectionChanged(organizationcollection.length)'
+        ],
+        _displayCollectionChanged: function(newValue, oldValue) {
+            //  console.log('_displayCollectionChanged' + this.dataHasNotArrived);
+
+            var v = newValue;
+            if (newValue.length === 0 && oldValue !== undefined && oldValue.length > 0 && this.displayCollection.length === 0) {
+                // only when first populated collection?
+                // db issue with polymer? w  this.push('', data)
+                // hack
+                this.dataHasNotArrived = false;
+                this.displayCollection = oldValue.slice();
+            }
+        },
+        _collectionChanged: function(length) {
+            this.dataHasNotArrived = length < 1 ? true : false;
+            //console.log('_collectionChanged ' + length + this.dataHasNotArrived);
+            // data arrived for the first time?
+            if (length >= this.recordsPerPage && this.displayCollection.length === 0) {
+                this._nextPage();
+            }
+        },
+        ready: function() {
+            this.radioSelected = 50;
+        },
+        // _organizationCollectionChanged: function(newValue, oldValue) {
+        //     console.log('_organizationCollectionChanged');
+        // },
+        _radioBtnChanged: function(newValue, oldValue) {
+            var v = parseInt(newValue);
+            if (isNaN(v)) {
+                v = 50;
+            }
+            this.recordsPerPage = v;
+        },
+        _prevPage: function() {
+            if (this.startingRecord < 0) {
+                return;
+            }
+            this.splice("displayCollection", 0, this.displayCollection.length);
+
+            this.endingRecord = this.startingRecord - this.recordsPerPage;
+            this.startingRecord = this.endingRecord - this.recordsPerPage;
+            if (this.startingRecord < 0) {
+                this.startingRecord = 0;
+                this.paginationMsg = '';
+                return;
+            }
+
+            var msg = 'Displaying ' + (this.startingRecord + 1) + ' to ';
+
+            for (; this.startingRecord < this.organizationcollection.length; ++this.startingRecord) {
+                if (this.startingRecord >= this.endingRecord) {
+                    break;
+                }
+                this.push('displayCollection', this.organizationcollection[this.startingRecord]);
+            }
+            if (this.endingRecord !== this.startingRecord + this.recordsPerPage) {
+                // on the last page in the middle
+                this.endingRecord = this.startingRecord;
+            }
+            this.paginationMsg = msg + +this.endingRecord;
+
+        },
+        _nextPage: function() {
+            if (this.startingRecord < 0 || this.startingRecord >= this.organizationcollection.length) {
+                return;
+            }
+
+            this.splice("displayCollection", 0, this.displayCollection.length);
+
+            this.endingRecord = this.startingRecord + this.recordsPerPage;
+
+            var msg = 'Displaying ' + (this.startingRecord + 1) + ' to ';
+
+            for (; this.startingRecord < this.organizationcollection.length; ++this.startingRecord) {
+                if (this.startingRecord >= this.endingRecord) {
+                    break;
+                }
+                this.push('displayCollection', this.organizationcollection[this.startingRecord]);
+                // console.log('pushed record to the collection');
+            }
+            if (this.endingRecord !== this.startingRecord + this.recordsPerPage) {
+                // on the last page in the middle
+                this.endingRecord = this.startingRecord;
+            }
+            this.paginationMsg = msg + this.endingRecord;
+
+        },
+        _recordCollapseAttributeId: function(id) {
+            return 'recordCollapse' + id;
+        },
+        _recordFabBtnAttributeId: function(id) {
+            return 'toggle_fab_btn' + id;
+        },
+        computeFilter: function(searchTerm) {
+            if (!searchTerm) {
+                // set filter to null to disable filtering
+                return null;
+            } else {
+                searchTerm = searchTerm.toLowerCase();
+                return function(record) {
+                    if (record && record.organization_name) {
+                        var name = record.organization_name.toLowerCase();
+                        var b = name.startsWith(searchTerm);
+
+                        return b;
+                    } else {
+                        return false;
+                    }
+                };
+            }
+        },
+        //  _recordCollabRecordLinkAttributeId: function(id) {
+        //     return 'toggle_fab_btn' + id;
+        // },
+        _toArray: function(obj) {
+            return Object.keys(obj).map(function(key) {
+                return {
+                    name: key,
+                    value: obj[key]
+                };
+            });
+        },
+        _fieldsToDisable: function(e) {
+            return e === '__firebaseKey__' || e === 'collaboration_links' || e === 'organization_links' || e === 'updated_date' || e === 'geolocation' || e === 'has_linked_records' || e === 'has_resources';
+        },
+        _addCollection: function(event, detail, sender) {
+            var id = event.model.record.__firebaseKey__;
+            var selector = '#collaborationLinks' + id;
+            var v = this.$$(selector);
+            var x = v;
+            // v.collection = this.collaborationcollection;
+            this.collectiontest = this.collaborationcollection;
+
+        },
+        _toggleView: function(event, detail, sender) {
+            var id = event.model.record.__firebaseKey__;
+            var selector = '#' + this._recordCollapseAttributeId(id);
+            this.$$(selector).toggle();
+
+            selector = '#' + this._recordFabBtnAttributeId(id);
+            var icon = this.$$(selector).icon;
+
+            if (icon === 'icons:expand-more') {
+                this.$$(selector).icon = "icons:expand-less";
+
+
+                //  this.recordEdit = event.model.record;
+
+
+            } else {
+                this.$$(selector).icon = "icons:expand-more";
+            }
+        },
+        _titleCase: function(str) {
+            if (str.length < 1) {
+                return str;
+            }
+            return str.toLowerCase().split(' ').map(function(word) {
+                return word.replace(word[0], word[0].toUpperCase());
+            }).join(' ');
+        },
+        _submitRecord: function(e) {
+            var id = e.model.record.__firebaseKey__;
+            var selector = '#' + this._recordCollapseAttributeId(id);
+            var inputes = this.$$(selector).querySelectorAll('paper-input');
+            var geoLocationinfo = {};
+            var fbKey = id;
+            var record = {};
+            var ctrl;
+            var key;
+            var v;
+            // var inputes = Polymer.dom(this.root).querySelectorAll('paper-input');
+
+            for (i in inputes) {
+                ctrl = inputes[i];
+                key = ctrl.label;
+                v = ctrl.value;
+
+                if (key !== undefined && v !== undefined) {
+                    if (key !== '__firebaseKey__') {
+                        // new normalize data
+                        if (key === 'organization_name' || key === 'organization_category') {
+                            v = this._titleCase(v);
+                        }
+                        if (key === 'state') {
+                            v = v.toUpperCase();
+                        }
+                        record[key] = v;
+                        if (key === 'address_1' || key === 'city' || key === 'state' || key === 'zip') {
+                            geoLocationinfo[key] = v;
+                        }
+                    }
+                }
+            }
+            if (fbKey.length === 0) {
+                return;
+            }
+
+            var geolocation = '';
+            for (var i in geoLocationinfo) {
+                if (geoLocationinfo.hasOwnProperty(i)) {
+                    geolocation += geoLocationinfo[i] + ' ';
+                }
+            }
+            if (geolocation.length > 0) {
+                record.geolocation = geolocation.trim();
+            }
+            record.updated_date = new Date().toLocaleDateString();
+
+            if (this.organizationlocation.length > 0) {
+                var that = this;
+                var event = e;
+                var ref = new Firebase(this.organizationlocation + fbKey);
+
+                ref.update( //set( // create own key //.push( to a time stamp key
+                    record,
+                    function(error) {
+                        var msg = 'Saved Record';
+                        if (error) {
+                            msg = 'Failed to add record';
+                        } else {
+                            that._toggleView(event);
+                        }
+                        // console.log(msg);
+                        that.fire('popToast', {
+                            toast: msg
+                        });
+                    });
+            }
+        }
+    });
+    </script>
+</dom-module>

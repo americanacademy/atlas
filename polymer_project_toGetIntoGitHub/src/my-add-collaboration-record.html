@@ -1,0 +1,214 @@
+<!-- my-add-collaboration-record.html -->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<!-- <link rel="import" href="../bower_components/paper-toast/paper-toast.html"> -->
+<!-- <link rel="import" href="../bower_components/firebase-element/firebase-collection.html"> -->
+<!-- <script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script> -->
+<dom-module id="my-add-collaboration-record">
+    <!-- my-add-firebase-record"> -->
+    <template>
+        <style include="shared-styles"></style>
+        <style>
+        :host {
+            display: block;
+        }
+        </style>
+        <div class="waiting">
+            <paper-spinner active$="{{dataHasNotArrived}}">
+            </paper-spinner>
+            <paper-item hidden$="{{!dataHasNotArrived}}">Loading Fields...</paper-item>
+        </div>
+        <div class=" card div-item vertical-section">
+            <span class="add-header">
+                <paper-fab mini id="addfab" disabled$="{{dataHasNotArrived}}" class="fab-expand-collapse" icon="icons:add" on-tap="_toggleView" title="Add New Record"></paper-fab>
+                <h3>Add New Collaboration</h3>
+            </span>
+            <div hidden$="[[hideControl]]">
+                <template id="templateID" is="dom-repeat" items="{{collectionKeys}}">
+                    <paper-input disabled$="[[_fieldsToHide(item.value)]]" label="[[item.value]]"></paper-input>
+                </template>
+                <span class="actions-fields">
+                    <paper-fab mini raised icon="icons:save" on-tap="_save" title="Save"></paper-fab>
+                    <paper-fab mini icon="icons:close" on-tap="_toggleView" title="Cancel"></paper-fab>
+                </span>
+            </div>
+        </div>
+    </template>
+    <script>
+    Polymer({
+        is: 'my-add-collaboration-record',
+        // add-firebase-record',
+        properties: {
+            dataHasNotArrived: {
+                type: Boolean,
+                notify: true,
+                value: true
+            },
+            collectionKeys: {
+                type: Array,
+                notify: true,
+                reflectToAttribute: true,
+                value: function() {
+                    return [];
+                }
+            },
+            location: {
+                type: String,
+                notify: true,
+                value: 'https://atlas-new-format.firebaseio.com/collaborations/'
+            },
+            jsonkeys: {
+                type: Array,
+                notify: true,
+                reflectToAttribute: true,
+                value: function() {
+                    return [];
+                }
+            },
+            hideControl: {
+                type: Boolean,
+                value: true,
+                notify: true
+            },
+        },
+        observers: [
+            '_collectionChanged(collectionKeys.length)'
+        ],
+        _collectionChanged: function(length) {
+            this.dataHasNotArrived = length < 1 ? true : false;
+        },
+        ready: function() {
+            // console.log('in view1 ready');
+            this.getInputFields();
+        },
+        getInputFields: function() {
+            var ref = new Firebase('https://atlas-new-format.firebaseio.com/collaborations'); //location);
+            var that = this;
+            ref.once('value', function(snapshot) {
+                snapshot.forEach(function(childSnapshot) {
+                    var data = childSnapshot.val();
+                    that.addToArray(data);
+                });
+            });
+        },
+        addToArray: function(data) {
+            for (var pos in data) {
+                var key = data[pos];
+
+                if (this._fieldsToIgnore(pos)) {
+                    continue;
+                }
+                if (this.jsonkeys.includes(pos) === false) {
+                    this.jsonkeys.push(pos);
+                    this.push('collectionKeys', {
+                        value: pos
+                    });
+                }
+            }
+        },
+        _toggleView: function() {
+            this.hideControl = !this.hideControl;
+            var fab = this.$.addfab;
+
+            if (fab.icon === "icons:close") {
+                fab.icon = "icons:add"; //create"; //icons:add";
+                fab.title = "Add New Record";
+                this._clearAllInputs();
+            } else {
+                this.getInputFields();
+
+                fab.icon = "icons:close";
+                fab.title = "Close";
+            }
+        },
+        _fieldsToHide: function(e) {
+            return e === '__firebaseKey__' || e === 'collaboration_links' || e === 'organization_links' || e === 'updated_date' || e === 'geolocation' || e === 'has_linked_records' || e === 'has_resources';
+        },
+        _fieldsToIgnore: function(e) {
+            return this._fieldsToHide(e);
+        },
+        _clearAllInputs: function() {
+            var inputes = Polymer.dom(this.root).querySelectorAll('paper-input');
+            var ctrl;
+            for (i in inputes) {
+                ctrl = inputes[i];
+                ctrl.value = '';
+            }
+        },
+        _titleCase: function(str) {
+            if (str.length < 1) {
+                return str;
+            }
+          return str.toLowerCase().split(' ').map(function(word) {
+            return word.replace(word[0], word[0].toUpperCase());
+          }).join(' ');
+        },
+        _save: function() {
+            var record = {};
+            var geoLocationinfo = {};
+            var ctrl;
+            var key;
+            var v;
+            var inputes = Polymer.dom(this.root).querySelectorAll('paper-input');
+
+            for (i in inputes) {
+                ctrl = inputes[i];
+                v = ctrl.value.trim();
+                k = ctrl.label;
+                k = k.toLowerCase().replace(' or ', '_').replace('-', '_');
+                k = k.replace(/[,.$\[\]#\/()!]/g, '').trim().replace(/ +/g, '_');
+
+                // new normalize data
+                if(k === 'organization_name' || k === 'organization_category') {
+                    v = this._titleCase(v);
+                }
+                 if(k === 'state') {
+                    v = v.toUpperCase();
+                }
+
+                record[k] = v;
+                if (k === 'address_1' || k === 'city' || k === 'state' || k === 'zip') {
+                    geoLocationinfo[k] = v;
+                }
+            }
+            // create geo location
+            var geolocation = '';
+            for (var i in geoLocationinfo) {
+                if (geoLocationinfo.hasOwnProperty(i)) {
+                    geolocation += geoLocationinfo[i] + ' ';
+                }
+            }
+            if (geolocation.length > 0) {
+                record.geolocation = geolocation.trim();
+            }
+            record.updated_date = new Date().toLocaleDateString();
+            this.pushData(record, this.location);
+        },
+        pushData: function(record, location) {
+            if (location.length > 0 && record) {
+                var that = this;
+                var ref = new Firebase(location);
+
+                ref.push( //set( // create own key //.push( to time stamp key
+                    record,
+                    function(error) {
+                        var msg = 'Saved Record';
+                        if (error) {
+                            msg = 'Failed to Save Record';
+                        } else {
+                            that._toggleView();
+                        }
+                        //  console.log(msg);
+                        that.fire('popToast', {
+                            toast: msg
+                        });
+                    });
+            }
+        }
+    });
+    </script>
+</dom-module>
