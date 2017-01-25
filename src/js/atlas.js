@@ -68,7 +68,10 @@ function filterData(filters) {
             for (var i in filters) {
 
                 if (filters[i] && filters[i].length > 0) {
-                    var result = row[tableCols[i]].includes(filters[i]);
+                    var result = (filters[i].includes(row[tableCols[i]]) || row[tableCols[i]].includes(filters[i]));
+                    if (tableCols[i] == 'organization_category' && row[tableCols[i]].includes('Ngo')) {
+                    	var result = (filters[i].includes(row['nonprofit_status']));
+                    }
                     if (result === false) {
                         addToDisplay = false;
                         break;
@@ -214,6 +217,9 @@ function createTableRow(id, org) {
         // if(col == "State") {
         //     string += org.state ? org.state : 'empty';
         // }
+        else if (column == 'organization_category' && org[column] == 'Ngo') {
+            string += org['nonprofit_status']
+        }
         else {
             string += org[column];
         }
@@ -367,6 +373,10 @@ function createFilterFor(key) {
         }
     }
     // 
+    if (key === 'organization_category') {
+       	//options.remove('Ngo');
+       	options.push('501(c)(3)', '501(c)(4)', '501(c)(5)', '501(c)(6)');
+    }
     if (key === 'collaboration_links') {
         options.sort(desc);
     } else {
@@ -379,7 +389,10 @@ function createFilterFor(key) {
         string = '<select id="' + key + '" class="chosen-select" multiple="' + options.length + '" data-placeholder="Organization type">';
     }
     for (var i = 0; i < options.length; i++) {
+    	if (options[i] === 'Ngo') {
+    	} else {
         string += '<option value="' + options[i] + '">' + options[i] + '</option>';
+    	}
     }
     string += '</select>';
     $("#options").append(string);
@@ -396,4 +409,7 @@ function createFilterFor(key) {
         allow_single_deselect: true,
         placeholder_text_multiple: placeHolder,
     });
+
+    $("#organization_category option[value='Ngo']").remove();
+
 }
