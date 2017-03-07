@@ -11,7 +11,7 @@ body {
       height: 100%;
       float: left;
       position: fixed;
-      background-color: rgba(31, 45, 96, 1);
+      background-color: red;
       color: white; }
       body #atlas #options .chosen-container {
         margin-top: 10px;
