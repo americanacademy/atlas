@@ -11,7 +11,7 @@ body {
       height: 100%;
       float: left;
       position: fixed;
-      background-color: black;
+      background-color: white;
       color: white; }
       body #atlas #options .chosen-container {
         margin-top: 10px;
@@ -44,7 +44,7 @@ body {
         padding: 5px; }
 
       body #atlas table tr a:hover {
-        background-color: red;
+        background-color: black;
         color: white; }
 
 
