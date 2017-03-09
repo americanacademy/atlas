@@ -44,12 +44,12 @@ body {
         padding: 5px; }
 
       body #atlas table tr a:hover {
-        background-color: black;
+        background-color: red;
         color: white; }
 
 
   body a {
-    color: red; }
+    color: black; }
   body p {
     margin-top: 10px; }
 
