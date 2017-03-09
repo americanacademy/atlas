@@ -1,5 +1,5 @@
 body {
-  font: normal 14px/100% "Andale Mono", AndaleMono, monospace;
+  font: normal 28px/100% "Andale Mono", AndaleMono, monospace;
   margin: 0; }
   body #atlas {
     text-align: center;
@@ -11,7 +11,7 @@ body {
       height: 100%;
       float: left;
       position: fixed;
-      background-color: white;
+      background-color: black;
       color: white; }
       body #atlas #options .chosen-container {
         margin-top: 10px;
