@@ -52,6 +52,8 @@ body {
 
   body a {
     color: black; }
+  body a.active{
+    color: white; }
   body p {
     margin-top: 10px; }
 
