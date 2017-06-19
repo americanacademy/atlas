@@ -3,17 +3,32 @@
 </SCRIPT>
 <link rel="stylesheet" type="text/css" href="dest/css/chosen.css">
 <link rel="stylesheet" type="text/css" href="dest/css/atlas.css">
-<button type="button" id="or" onclick='changetoor()'>
-    Collaboration Or Search
-</button>
-<button type="button" id="and" onclick='changetoand()'>
-    Collaboration And Search
-</button>
+
+<!--The static header.
+        
+    If the CSS can be made to behave, it's more
+    technically sound to make a second table and have
+    the header be the only visible part at the top.
+
+    There's a JQuery module to achieve this: floatThead-->
+<div id="header">
+    <table id="tophead" class="content">
+        <tr>
+            <th id="buffer"></th>
+            <th id="organization_header">Organizations</th>
+            <th id="state_header">State</th>
+            <th id="participation_header">Participation in Collaboration</th>
+            <th id="type_header">Organization Type</th>
+        </tr>
+    </table>
+</div>
 <div id="atlas">
+    <!-- The Filter panel -->
     <div id="options">
         <p>Filters<p>
         <p id='row-count'></p>
     </div>
+    <!-- The main body of the table-->
     <table id="orgs">
         <thead></thead>
         <tbody id="table-body">
