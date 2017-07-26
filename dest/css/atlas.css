@@ -64,7 +64,7 @@ body {
       body #atlas table tr {
         cursor: pointer; }
       body #atlas table th {
-        width: 100px;
+        width: 150px;
         overflow-x: scroll;
         font-size: 1.2em;
         height: 50px;
@@ -72,7 +72,7 @@ body {
         color: white; }
       body #atlas table td {
         height: 50px;
-        width: 100px;
+        width: 150px;
         overflow-x: scroll;
         border: solid 1px #eee;
         border-collapse: collapse;
