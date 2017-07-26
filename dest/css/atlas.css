@@ -17,23 +17,7 @@ body {
       z-index: -1;
       padding: 10px;
     }
-    /*These lines are fine tuned to the size of the frame.*/
-    body #header #buffer{
-      width: 29%;
-    }
-    body #header #organization_header{
-      width: 18%;
-    }
-    body #header #state_header{
-      width: 12%;
-    }
-    body #header #participation_header{
-      width: 36%;
-    }
-    body #header #type_header{
-      width: 5%;
-    }
-
+  
   body #atlas {
     text-align: center;
     width: 100%;
@@ -80,12 +64,16 @@ body {
       body #atlas table tr {
         cursor: pointer; }
       body #atlas table th {
+        width: 100px;
+        overflow-x: scroll;
         font-size: 1.2em;
         height: 50px;
         background-color: rgba(31, 45, 96, 1);
         color: white; }
       body #atlas table td {
         height: 50px;
+        width: 100px;
+        overflow-x: scroll;
         border: solid 1px #eee;
         border-collapse: collapse;
         padding: 5px; }
