@@ -1,0 +1,33 @@
+Front-end documentation for atlas table
+
+This document is intended to accompany the organization table, whose code is stored in the gh-pages branch of the 'atlas' reposity.
+
+
+
+At the moment, I can only offer advice for optimization. I have not worked on this part of the project extensively enough to make sweeping generalizations about what the system is doing and where it is going.
+
+There are two main sticking points time-wise: filterData and createTableRow.
+
+My solution is generally to implement principles of good OOP, and have organization/collaboration objects and their data. When the page is loaded and data is recieved, the organization and collaboration data is stored in specific ways. First, collaborations are stored in objects as a list, with one attribute:
+	* key: name
+
+Then, organizations are processed, and they store any attributes that are important to their continued behavior, again in javascript objects:
+	* 'key': actual key
+	* 'name': name
+	* 'state': state
+	* 'type': organization_type
+	* any further attributes as needed.
+
+Finally, once entity-membership is recieved, each organization gains another attribute labelled 'membership', that corresponds to the keys of the collaborations that the organization is part of:
+	* 'membership': [key1, key2, key3...]
+
+This is all loaded at the start of the table. Since createTableRow is an expensive process, at this point, createTableRow is also called on every organization object (which is now structured so as to be easier for createTableRow), and a final attribute 'table-string' is created:
+	* 'table-string': "<tr><td>.... </tr>"
+
+Which removes the cost of createTableRow from here on out.
+
+filterData should then be restructured to output organization objects that meet the filter requirements. Again, since the organizations are structured as objects, this should greatly reduce the overhead required. Nonetheless, a complete rewrite of the function is recommended. 
+
+For an additional optimization, detect when the filters are added in a way that reduces the amount of records to display. Then, only filter the currently displayed records instead of the total set of records. 
+
+Also an optimization: when a header is clicked, don't do a total data refresh, instead only sort the current loaded data. Keeping track of the currently loaded data helps with both of the above optimizations. 
