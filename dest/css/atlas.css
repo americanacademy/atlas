@@ -63,9 +63,11 @@ body {
         text-align: left;
         cursor: pointer;
       }
-      body #atlas #options button,
-      body #atlas #options button .disabled {
+      body #atlas #options button {
+      }
+      body #atlas #options button:disabled {
         background: rgba(31, 45, 96, 1);
+        cursor: not-allowed;
       }
       body #atlas #options input {
         width: 100%;
