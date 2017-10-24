@@ -49,6 +49,7 @@ body {
       height: 100%;
       float: left;
       position: fixed;
+      overflow-y: scroll;
       background-color: rgba(31, 45, 96, 1);
       color: white; }
       body #atlas #options .chosen-container {
