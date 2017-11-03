@@ -1,5 +1,24 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.7.1/firebase.js"></script>
+<script src="//maps.googleapis.com/maps/api/js?key=AIzaSyDplsTlpTuCS-MBQggxOf0iNloTP-OBOIE"></script>
+
+<SCRIPT TYPE="text/javascript">
+    function myFunction() {
+        var x = document.getElementById('my-map');
+        if (x.style.display === 'none') {
+            x.style.display = 'block';
+        } else {
+            x.style.display = 'none';
+        }
+    }
+</SCRIPT>
+
 <link rel="stylesheet" type="text/css" href="dest/css/chosen.css">
 <link rel="stylesheet" type="text/css" href="dest/css/atlas.css">
+
+<button type="button" id="map-button" onclick="myFunction()">
+    Click to View/Hide Map Interface
+</button>
 
 <!--The static header.
         
@@ -9,9 +28,10 @@
 
     There's a JQuery module to achieve this: floatThead-->
 <div id="header">
+<div class="my-google-map" id="my-map" style="display: none; overflow: visible;"></div>
     <table id="tophead" class="content">
         <tr>
-            <th id="buffer">Click on headers to sort table</th>
+            <th id="buffer"></th>
             <th class = "clickable" id="organization_header"  data-column="entity_name">         Organization</th>
             <th class = "clickable" id="type_header"          data-column="entity_category">     Organization Type</th>
             <th class = "clickable" id="focus_header"         data-column="primary_focus">       Primary Focus</th>
@@ -33,6 +53,7 @@
         </tbody>
     </table>
 </div>
+
 <!-- JAVASCRIPT -->
 <script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
